@@ -122,6 +122,36 @@
     }
 
 
+    function send_tracking_data($visitor_ip, $user_agent, $referer, $query_string, $browser_language, $label_id, $cloaking_result)
+    {
+        $tracking_data = json_encode([
+            'visitor_ip' => $visitor_ip,
+            'user_agent' => $user_agent,
+            'referer' => $referer,
+            'query_string' => $query_string,
+            'browser_language' => $browser_language,
+            'label_id' => $label_id,
+            'cloaking_result' => $cloaking_result
+        ]);
+
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $tracking_url = $protocol . '://' . $host . '/api/tracking/collect';
+
+        $ch = curl_init($tracking_url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $tracking_data,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_TIMEOUT => 2,
+            CURLOPT_SSL_VERIFYPEER => FALSE
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+    }
+
+
     $request_data = [
         'label'         => '7ee1ec81d782e99cbf03b1b2b2311860', 
         'user_agent'    => get_user_agent(), 
@@ -212,12 +242,13 @@
                 }
 
                 if ($body['mode_offer_page'] == 'redirect') {
+                    send_tracking_data(get_real_ip_address(), get_user_agent(), get_referer(), get_query_string(), get_browser_language(), '7ee1ec81d782e99cbf03b1b2b2311860', $body['filter_page'] ?? '');
                     header('Location: ' . $body['url_offer_page'], TRUE, 302);
                     exit(0);
                 }
 
                 if ($body['mode_offer_page'] == 'iframe') {
-                    echo '<iframe src="' . $body['url_offer_page'] . '" width="100%" height="100%" align="left"></iframe><style> body { padding: 0; margin: 0; } iframe { margin: 0; padding: 0; border: 0; }</style>';
+                    echo $tracking_script . '<iframe src="' . $body['url_offer_page'] . '" width="100%" height="100%" align="left"></iframe><style> body { padding: 0; margin: 0; } iframe { margin: 0; padding: 0; border: 0; }</style>';
                     exit(0);
                 }
             }
@@ -242,6 +273,7 @@
                 }
 
                 if ($body['mode_white_page'] == 'redirect') {
+                    send_tracking_data(get_real_ip_address(), get_user_agent(), get_referer(), get_query_string(), get_browser_language(), '7ee1ec81d782e99cbf03b1b2b2311860', $body['filter_page'] ?? '');
                     header('Location: ' . $body['url_white_page'], TRUE, 302);
                     exit(0);
                 }
