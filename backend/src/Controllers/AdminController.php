@@ -97,25 +97,6 @@ class AdminController
         return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
-    public function trackingData(Request $request, Response $response): Response
-    {
-        $authResponse = $this->requireAuth($request, $response);
-        if ($authResponse) return $authResponse;
-
-        $html = $this->renderTrackingData();
-        $response->getBody()->write($html);
-        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
-    }
-
-    public function assignments(Request $request, Response $response): Response
-    {
-        $authResponse = $this->requireAuth($request, $response);
-        if ($authResponse) return $authResponse;
-
-        $html = $this->renderAssignments();
-        $response->getBody()->write($html);
-        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
-    }
 
     // API 方法
     public function apiCustomerServices(Request $request, Response $response): Response
@@ -158,31 +139,6 @@ class AdminController
         }
     }
 
-    public function apiTrackingData(Request $request, Response $response): Response
-    {
-        $authResponse = $this->requireAuth($request, $response);
-        if ($authResponse) {
-            $response->getBody()->write(json_encode(['error' => 'Unauthorized']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
-        }
-
-        $trackingData = $this->loadTrackingData();
-        $response->getBody()->write(json_encode($trackingData));
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    public function apiAssignments(Request $request, Response $response): Response
-    {
-        $authResponse = $this->requireAuth($request, $response);
-        if ($authResponse) {
-            $response->getBody()->write(json_encode(['error' => 'Unauthorized']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
-        }
-
-        $assignments = $this->loadAssignments();
-        $response->getBody()->write(json_encode($assignments));
-        return $response->withHeader('Content-Type', 'application/json');
-    }
 
     public function apiSettings(Request $request, Response $response): Response
     {
@@ -331,48 +287,6 @@ class AdminController
         return $response->withHeader('Location', '/admin/customer-services')->withStatus(302);
     }
 
-    private function loadTrackingData(): array
-    {
-        $file = $this->dataDir . '/../logs/tracking.log';
-        if (!file_exists($file)) {
-            return [];
-        }
-
-        $lines = file($file, FILE_IGNORE_NEW_LINES);
-        $data = [];
-
-        foreach (array_reverse(array_slice($lines, -100)) as $line) {
-            if (preg_match('/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[([^\]]+)\] (.+)$/', $line, $matches)) {
-                $data[] = [
-                    'timestamp' => $matches[1],
-                    'type' => $matches[2],
-                    'data' => json_decode($matches[3], true) ?: $matches[3]
-                ];
-            }
-        }
-
-        return $data;
-    }
-
-    private function loadAssignments(): array
-    {
-        $file = $this->dataDir . '/assignments.jsonl';
-        if (!file_exists($file)) {
-            return [];
-        }
-
-        $lines = file($file, FILE_IGNORE_NEW_LINES);
-        $assignments = [];
-
-        foreach (array_reverse(array_slice($lines, -100)) as $line) {
-            $assignment = json_decode($line, true);
-            if ($assignment) {
-                $assignments[] = $assignment;
-            }
-        }
-
-        return $assignments;
-    }
 
     private function getCommonStyles(): string
     {
@@ -1040,22 +954,6 @@ HTML;
             <div class="content">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                            📊
-                        </div>
-                        <div class="stat-label">总分配数</div>
-                        <div class="stat-value" id="total-assignments">-</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
-                            ✓
-                        </div>
-                        <div class="stat-label">成功率</div>
-                        <div class="stat-value" id="success-rate">-</div>
-                    </div>
-
-                    <div class="stat-card">
                         <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
                             👥
                         </div>
@@ -1087,13 +985,6 @@ HTML;
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">最近活动</div>
-                    <div class="card-body">
-                        <div id="recent-activity" style="font-size: 13px; color: var(--gray-500);">加载中...</div>
                     </div>
                 </div>
             </div>
@@ -1128,30 +1019,15 @@ HTML;
         }
 
         function loadStats() {
-            Promise.all([
-                fetch('/admin/api/assignments').then(r => r.json()),
-                fetch('/admin/api/customer-services').then(r => r.json())
-            ]).then(([assignments, services]) => {
-                document.getElementById('total-assignments').textContent = assignments.length;
-
-                const successCount = assignments.filter(a => a.launch_success).length;
-                const successRate = assignments.length > 0 ? Math.round((successCount / assignments.length) * 100) : 0;
-                document.getElementById('success-rate').textContent = successRate + '%';
-
-                const activeServices = services.filter(s => s.status === 'active').length;
-                document.getElementById('active-services').textContent = activeServices;
-
-                const recentActivity = assignments.slice(0, 5).map(a =>
-                    `<div style="padding: 10px 0; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between;">
-                        <span><strong>${a.stockcode || '未知'}</strong> → ${a.customer_service_name}</span>
-                        <span style="color: var(--gray-400); font-size: 12px;">${a.created_at}</span>
-                    </div>`
-                ).join('');
-
-                document.getElementById('recent-activity').innerHTML = recentActivity || '暂无活动记录';
-            }).catch(error => {
-                console.error('Error loading stats:', error);
-            });
+            fetch('/admin/api/customer-services')
+                .then(r => r.json())
+                .then(services => {
+                    const activeServices = services.filter(s => s.status === 'active').length;
+                    document.getElementById('active-services').textContent = activeServices;
+                })
+                .catch(error => {
+                    console.error('Error loading stats:', error);
+                });
         }
 
         function showToast(message, type = 'info') {
@@ -1423,237 +1299,12 @@ HTML;
         );
     }
 
-    private function renderTrackingData(): string
-    {
-        $commonStyles = $this->getCommonStyles();
-        $sidebar = $this->getSidebar('tracking');
-
-        $html = <<<'HTML'
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>追踪数据 - 管理后台</title>
-    {{COMMON_STYLES}}
-    <style>
-        .log-entry {
-            padding: 12px;
-            margin-bottom: 10px;
-            background: var(--gray-50);
-            border-radius: 6px;
-            border-left: 3px solid var(--gray-300);
-            font-size: 12px;
-        }
-
-        .log-timestamp {
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 6px;
-        }
-
-        .log-data {
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-            margin-top: 8px;
-        }
-
-        pre {
-            margin: 0;
-            font-size: 11px;
-            line-height: 1.6;
-        }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        {{SIDEBAR}}
-
-        <div class="main-content">
-            <div class="header">
-                <h1 class="header-title">追踪数据</h1>
-            </div>
-
-            <div class="content">
-                <div class="card">
-                    <div class="card-header">最近追踪记录 (100条)</div>
-                    <div class="card-body">
-                        <div id="tracking-data">加载中...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function loadTrackingData() {
-            fetch('/admin/api/tracking')
-                .then(response => response.json())
-                .then(data => {
-                    const container = document.getElementById('tracking-data');
-                    if (data.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; color: var(--gray-400); padding: 40px;">暂无追踪数据</p>';
-                        return;
-                    }
-
-                    container.innerHTML = data.map(entry => `
-                        <div class="log-entry" style="border-left-color: ${getTypeColor(entry.type)};">
-                            <div class="log-timestamp">${entry.timestamp}</div>
-                            <span class="badge badge-${getTypeBadge(entry.type)}">${entry.type}</span>
-                            <div class="log-data">
-                                <pre>${JSON.stringify(entry.data, null, 2)}</pre>
-                            </div>
-                        </div>
-                    `).join('');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('tracking-data').innerHTML = '<p style="text-align: center; color: var(--danger);">加载失败</p>';
-                });
-        }
-
-        function getTypeColor(type) {
-            const colors = {
-                'page_track': '#10b981',
-                'uppage_track': '#3b82f6',
-                'error_log': '#ef4444'
-            };
-            return colors[type] || '#94a3b8';
-        }
-
-        function getTypeBadge(type) {
-            const badges = {
-                'page_track': 'success',
-                'uppage_track': 'info',
-                'error_log': 'danger'
-            };
-            return badges[type] || 'info';
-        }
-
-        document.addEventListener('DOMContentLoaded', loadTrackingData);
-    </script>
-</body>
-</html>
-HTML;
-
-        return str_replace(
-            ['{{COMMON_STYLES}}', '{{SIDEBAR}}'],
-            [$commonStyles, $sidebar],
-            $html
-        );
-    }
-
-    private function renderAssignments(): string
-    {
-        $commonStyles = $this->getCommonStyles();
-        $sidebar = $this->getSidebar('assignments');
-
-        $html = <<<'HTML'
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>分配记录 - 管理后台</title>
-    {{COMMON_STYLES}}
-</head>
-<body>
-    <div class="app-container">
-        {{SIDEBAR}}
-
-        <div class="main-content">
-            <div class="header">
-                <h1 class="header-title">分配记录</h1>
-            </div>
-
-            <div class="content">
-                <div class="card">
-                    <div class="card-header">最近分配记录 (100条)</div>
-                    <div class="card-body" style="padding: 0;">
-                        <table id="assignments-table">
-                            <thead>
-                                <tr>
-                                    <th>时间</th>
-                                    <th>股票代码</th>
-                                    <th>客服名称</th>
-                                    <th>状态</th>
-                                    <th>IP地址</th>
-                                    <th>用户代理</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="6" style="text-align: center; color: var(--gray-400);">加载中...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function loadAssignments() {
-            fetch('/admin/api/assignments')
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.querySelector('#assignments-table tbody');
-                    if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--gray-400); padding: 40px;">暂无分配记录</td></tr>';
-                        return;
-                    }
-
-                    tbody.innerHTML = data.map(assignment => {
-                        let status = '待处理';
-                        let badgeClass = 'badge-warning';
-
-                        if (assignment.launch_success) {
-                            status = '成功';
-                            badgeClass = 'badge-success';
-                        } else if (assignment.page_leave_at || assignment.fallback_redirect_at) {
-                            status = '失败';
-                            badgeClass = 'badge-danger';
-                        }
-
-                        return `
-                            <tr>
-                                <td style="font-size: 12px;">${assignment.created_at}</td>
-                                <td><strong>${assignment.stockcode || '-'}</strong></td>
-                                <td>${assignment.customer_service_name}</td>
-                                <td><span class="badge ${badgeClass}">${status}</span></td>
-                                <td style="font-size: 12px; color: var(--gray-500);">${assignment.ip}</td>
-                                <td style="font-size: 11px; color: var(--gray-400); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${assignment.user_agent}">${assignment.user_agent}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.querySelector('#assignments-table tbody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败</td></tr>';
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', loadAssignments);
-    </script>
-</body>
-</html>
-HTML;
-
-        return str_replace(
-            ['{{COMMON_STYLES}}', '{{SIDEBAR}}'],
-            [$commonStyles, $sidebar],
-            $html
-        );
-    }
 
     private function getSidebar(string $active = ''): string
     {
         $nav = [
             ['id' => 'dashboard', 'label' => '仪表板', 'icon' => '📊', 'url' => '/admin/dashboard'],
             ['id' => 'customer-services', 'label' => '客服管理', 'icon' => '👥', 'url' => '/admin/customer-services'],
-            ['id' => 'tracking', 'label' => '追踪数据', 'icon' => '📈', 'url' => '/admin/tracking'],
-            ['id' => 'assignments', 'label' => '分配记录', 'icon' => '📋', 'url' => '/admin/assignments'],
         ];
 
         $navHtml = '';
