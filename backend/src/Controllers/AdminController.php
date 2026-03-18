@@ -840,7 +840,7 @@ CSS;
     {
         $errorHtml = $error ? "<div class='error-message'>$error</div>" : '';
 
-        return <<<HTML
+        $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -980,7 +980,7 @@ CSS;
             <p class="subtitle">请登录以继续访问</p>
         </div>
 
-        $errorHtml
+        {{ERROR_HTML}}
 
         <form method="POST" action="/admin/login">
             <div class="form-group">
@@ -1003,6 +1003,8 @@ CSS;
 </body>
 </html>
 HTML;
+
+        return str_replace('{{ERROR_HTML}}', $errorHtml, $html);
     }
 
     private function renderDashboard(): string
@@ -1011,18 +1013,21 @@ HTML;
         $cloakingStatus = $settings['cloaking_enhanced'] ? '启用' : '禁用';
         $cloakingChecked = $settings['cloaking_enhanced'] ? 'checked' : '';
 
-        return <<<HTML
+        $commonStyles = $this->getCommonStyles();
+        $sidebar = $this->getSidebar('dashboard');
+
+        $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>仪表板 - 管理后台</title>
-    {$this->getCommonStyles()}
+    {{COMMON_STYLES}}
 </head>
 <body>
     <div class="app-container">
-        {$this->getSidebar('dashboard')}
+        {{SIDEBAR}}
 
         <div class="main-content">
             <div class="header">
@@ -1063,7 +1068,7 @@ HTML;
                             🛡️
                         </div>
                         <div class="stat-label">引流加强</div>
-                        <div class="stat-value" style="font-size: 18px;">$cloakingStatus</div>
+                        <div class="stat-value" style="font-size: 18px;">{{CLOAKING_STATUS}}</div>
                     </div>
                 </div>
 
@@ -1078,7 +1083,7 @@ HTML;
                                 <div style="font-size: 12px; color: var(--gray-500);">启用后，只允许来自Google搜索的用户访问客服分配接口</div>
                             </div>
                             <label class="toggle">
-                                <input type="checkbox" id="cloaking-switch" onchange="toggleCloaking()" $cloakingChecked>
+                                <input type="checkbox" id="cloaking-switch" onchange="toggleCloaking()" {{CLOAKING_CHECKED}}>
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -1138,8 +1143,8 @@ HTML;
 
                 const recentActivity = assignments.slice(0, 5).map(a =>
                     `<div style="padding: 10px 0; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between;">
-                        <span><strong>\${a.stockcode || '未知'}</strong> → \${a.customer_service_name}</span>
-                        <span style="color: var(--gray-400); font-size: 12px;">\${a.created_at}</span>
+                        <span><strong>${a.stockcode || '未知'}</strong> → ${a.customer_service_name}</span>
+                        <span style="color: var(--gray-400); font-size: 12px;">${a.created_at}</span>
                     </div>`
                 ).join('');
 
@@ -1173,22 +1178,31 @@ HTML;
 </body>
 </html>
 HTML;
+
+        return str_replace(
+            ['{{COMMON_STYLES}}', '{{SIDEBAR}}', '{{CLOAKING_STATUS}}', '{{CLOAKING_CHECKED}}'],
+            [$commonStyles, $sidebar, $cloakingStatus, $cloakingChecked],
+            $html
+        );
     }
 
     private function renderCustomerServices(): string
     {
-        return <<<HTML
+        $commonStyles = $this->getCommonStyles();
+        $sidebar = $this->getSidebar('customer-services');
+
+        $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>客服管理 - 管理后台</title>
-    {$this->getCommonStyles()}
+    {{COMMON_STYLES}}
 </head>
 <body>
     <div class="app-container">
-        {$this->getSidebar('customer-services')}
+        {{SIDEBAR}}
 
         <div class="main-content">
             <div class="header">
@@ -1289,14 +1303,14 @@ HTML;
 
             tbody.innerHTML = services.map(service => `
                 <tr>
-                    <td><strong>\${service.name}</strong></td>
-                    <td><a href="\${service.url}" target="_blank" style="color: var(--primary); text-decoration: none;">\${service.url.substring(0, 40)}...</a></td>
-                    <td><a href="\${service.fallback_url}" target="_blank" style="color: var(--gray-500); text-decoration: none; font-size: 12px;">\${service.fallback_url}</a></td>
-                    <td><span class="badge badge-\${service.status === 'active' ? 'success' : 'danger'}">\${service.status === 'active' ? '活跃' : '停用'}</span></td>
-                    <td style="font-size: 12px; color: var(--gray-500);">\${service.created_at}</td>
+                    <td><strong>${service.name}</strong></td>
+                    <td><a href="${service.url}" target="_blank" style="color: var(--primary); text-decoration: none;">${service.url.substring(0, 40)}...</a></td>
+                    <td><a href="${service.fallback_url}" target="_blank" style="color: var(--gray-500); text-decoration: none; font-size: 12px;">${service.fallback_url}</a></td>
+                    <td><span class="badge badge-${service.status === 'active' ? 'success' : 'danger'}">${service.status === 'active' ? '活跃' : '停用'}</span></td>
+                    <td style="font-size: 12px; color: var(--gray-500);">${service.created_at}</td>
                     <td style="text-align: right;">
-                        <button class="btn btn-secondary btn-sm" onclick="editService('\${service.id}')">编辑</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteService('\${service.id}')">删除</button>
+                        <button class="btn btn-secondary btn-sm" onclick="editService('${service.id}')">编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteService('${service.id}')">删除</button>
                     </td>
                 </tr>
             `).join('');
@@ -1384,7 +1398,7 @@ HTML;
                 top: 20px;
                 right: 20px;
                 padding: 12px 20px;
-                background: \${type === 'success' ? '#10b981' : '#ef4444'};
+                background: ${type === 'success' ? '#10b981' : '#ef4444'};
                 color: white;
                 border-radius: 8px;
                 font-size: 13px;
@@ -1401,18 +1415,27 @@ HTML;
 </body>
 </html>
 HTML;
+
+        return str_replace(
+            ['{{COMMON_STYLES}}', '{{SIDEBAR}}'],
+            [$commonStyles, $sidebar],
+            $html
+        );
     }
 
     private function renderTrackingData(): string
     {
-        return <<<HTML
+        $commonStyles = $this->getCommonStyles();
+        $sidebar = $this->getSidebar('tracking');
+
+        $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>追踪数据 - 管理后台</title>
-    {$this->getCommonStyles()}
+    {{COMMON_STYLES}}
     <style>
         .log-entry {
             padding: 12px;
@@ -1446,7 +1469,7 @@ HTML;
 </head>
 <body>
     <div class="app-container">
-        {$this->getSidebar('tracking')}
+        {{SIDEBAR}}
 
         <div class="main-content">
             <div class="header">
@@ -1476,11 +1499,11 @@ HTML;
                     }
 
                     container.innerHTML = data.map(entry => `
-                        <div class="log-entry" style="border-left-color: \${getTypeColor(entry.type)};">
-                            <div class="log-timestamp">\${entry.timestamp}</div>
-                            <span class="badge badge-\${getTypeBadge(entry.type)}">\${entry.type}</span>
+                        <div class="log-entry" style="border-left-color: ${getTypeColor(entry.type)};">
+                            <div class="log-timestamp">${entry.timestamp}</div>
+                            <span class="badge badge-${getTypeBadge(entry.type)}">${entry.type}</span>
                             <div class="log-data">
-                                <pre>\${JSON.stringify(entry.data, null, 2)}</pre>
+                                <pre>${JSON.stringify(entry.data, null, 2)}</pre>
                             </div>
                         </div>
                     `).join('');
@@ -1514,22 +1537,31 @@ HTML;
 </body>
 </html>
 HTML;
+
+        return str_replace(
+            ['{{COMMON_STYLES}}', '{{SIDEBAR}}'],
+            [$commonStyles, $sidebar],
+            $html
+        );
     }
 
     private function renderAssignments(): string
     {
-        return <<<HTML
+        $commonStyles = $this->getCommonStyles();
+        $sidebar = $this->getSidebar('assignments');
+
+        $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>分配记录 - 管理后台</title>
-    {$this->getCommonStyles()}
+    {{COMMON_STYLES}}
 </head>
 <body>
     <div class="app-container">
-        {$this->getSidebar('assignments')}
+        {{SIDEBAR}}
 
         <div class="main-content">
             <div class="header">
@@ -1586,12 +1618,12 @@ HTML;
 
                         return `
                             <tr>
-                                <td style="font-size: 12px;">\${assignment.created_at}</td>
-                                <td><strong>\${assignment.stockcode || '-'}</strong></td>
-                                <td>\${assignment.customer_service_name}</td>
-                                <td><span class="badge \${badgeClass}">\${status}</span></td>
-                                <td style="font-size: 12px; color: var(--gray-500);">\${assignment.ip}</td>
-                                <td style="font-size: 11px; color: var(--gray-400); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="\${assignment.user_agent}">\${assignment.user_agent}</td>
+                                <td style="font-size: 12px;">${assignment.created_at}</td>
+                                <td><strong>${assignment.stockcode || '-'}</strong></td>
+                                <td>${assignment.customer_service_name}</td>
+                                <td><span class="badge ${badgeClass}">${status}</span></td>
+                                <td style="font-size: 12px; color: var(--gray-500);">${assignment.ip}</td>
+                                <td style="font-size: 11px; color: var(--gray-400); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${assignment.user_agent}">${assignment.user_agent}</td>
                             </tr>
                         `;
                     }).join('');
@@ -1607,6 +1639,12 @@ HTML;
 </body>
 </html>
 HTML;
+
+        return str_replace(
+            ['{{COMMON_STYLES}}', '{{SIDEBAR}}'],
+            [$commonStyles, $sidebar],
+            $html
+        );
     }
 
     private function getSidebar(string $active = ''): string
