@@ -10,147 +10,108 @@ use Psr\Log\LoggerInterface;
 class TrackingController
 {
     private LoggerInterface $logger;
-    private string $dataFile;
 
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->dataFile = __DIR__ . '/../../data/tracking_data.json';
     }
 
-    public function collect(Request $request, Response $response): Response
+    public function pageTrack(Request $request, Response $response): Response
     {
-        try {
-            $data = $request->getParsedBody();
+        $data = json_decode($request->getBody()->getContents(), true);
+        
+        $trackingData = [
+            'url' => $data['url'] ?? '',
+            'timestamp' => $data['timestamp'] ?? date('c'),
+            'click_type' => $data['click_type'] ?? 0,
+            'user_agent' => $request->getHeaderLine('User-Agent'),
+            'ip' => $this->getClientIp($request),
+            'timezone' => $request->getHeaderLine('timezone'),
+            'language' => $request->getHeaderLine('language'),
+        ];
 
-            $requiredFields = ['visitor_ip', 'user_agent', 'label_id'];
-            foreach ($requiredFields as $field) {
-                if (!isset($data[$field]) || empty($data[$field])) {
-                    return $this->jsonResponse($response, [
-                        'success' => false,
-                        'error' => "Missing required field: $field"
-                    ], 400);
-                }
-            }
+        $this->logger->info('Page tracking', $trackingData);
 
-            if (!filter_var($data['visitor_ip'], FILTER_VALIDATE_IP)) {
-                return $this->jsonResponse($response, [
-                    'success' => false,
-                    'error' => 'Invalid IP address'
-                ], 400);
-            }
+        // 这里可以保存到数据库
+        $this->saveTrackingData('page_track', $trackingData);
 
-            $record = [
-                'id' => $this->getNextId(),
-                'visitor_ip' => substr($data['visitor_ip'], 0, 45),
-                'user_agent' => substr($data['user_agent'], 0, 500),
-                'referer' => isset($data['referer']) ? substr($data['referer'], 0, 1000) : '',
-                'query_string' => isset($data['query_string']) ? substr($data['query_string'], 0, 2000) : '',
-                'browser_language' => isset($data['browser_language']) ? substr($data['browser_language'], 0, 50) : '',
-                'label_id' => (int)$data['label_id'],
-                'cloaking_result' => isset($data['cloaking_result']) ? substr($data['cloaking_result'], 0, 50) : '',
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-
-            $this->saveRecord($record);
-
-            $this->logger->info('Tracking data collected', ['ip' => $record['visitor_ip']]);
-
-            return $this->jsonResponse($response, [
-                'success' => true,
-                'id' => $record['id']
-            ]);
-
-        } catch (\Exception $e) {
-            $this->logger->error('Tracking collection failed', ['error' => $e->getMessage()]);
-            return $this->jsonResponse($response, [
-                'success' => false,
-                'error' => 'Internal server error'
-            ], 500);
-        }
+        $response->getBody()->write(json_encode(['status' => 'success', 'message' => 'Tracking data recorded']));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public function getAll(Request $request, Response $response): Response
+    public function upPageTrack(Request $request, Response $response): Response
     {
-        try {
-            $params = $request->getQueryParams();
-            $page = isset($params['page']) ? max(1, (int)$params['page']) : 1;
-            $perPage = 10;
+        $data = json_decode($request->getBody()->getContents(), true);
+        
+        $trackingData = [
+            'id' => $data['id'] ?? 0,
+            'timestamp' => date('c'),
+            'user_agent' => $request->getHeaderLine('User-Agent'),
+            'ip' => $this->getClientIp($request),
+        ];
 
-            $records = $this->readAllRecords();
-            $records = array_reverse($records);
+        $this->logger->info('Up page tracking', $trackingData);
+        
+        // 这里可以保存到数据库
+        $this->saveTrackingData('uppage_track', $trackingData);
 
-            $total = count($records);
-            $totalPages = ceil($total / $perPage);
-            $offset = ($page - 1) * $perPage;
-            $paginatedRecords = array_slice($records, $offset, $perPage);
-
-            return $this->jsonResponse($response, [
-                'success' => true,
-                'data' => $paginatedRecords,
-                'pagination' => [
-                    'current_page' => $page,
-                    'per_page' => $perPage,
-                    'total' => $total,
-                    'total_pages' => $totalPages
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to read tracking data', ['error' => $e->getMessage()]);
-            return $this->jsonResponse($response, [
-                'success' => false,
-                'error' => 'Failed to load data'
-            ], 500);
-        }
+        $response->getBody()->write(json_encode(['status' => 'success', 'message' => 'Up page tracking recorded']));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
-    private function getNextId(): int
+    public function logError(Request $request, Response $response): Response
     {
-        $records = $this->readAllRecords();
-        if (empty($records)) {
-            return 1;
-        }
-        $lastRecord = end($records);
-        return ($lastRecord['id'] ?? 0) + 1;
+        $data = json_decode($request->getBody()->getContents(), true);
+        
+        $errorData = [
+            'message' => $data['message'] ?? '',
+            'stack' => $data['stack'] ?? '',
+            'phase' => $data['phase'] ?? 'unknown',
+            'btnText' => $data['btnText'] ?? '',
+            'click_type' => $data['click_type'] ?? 0,
+            'stockcode' => $data['stockcode'] ?? '',
+            'href' => $data['href'] ?? '',
+            'ref' => $data['ref'] ?? '',
+            'ts' => $data['ts'] ?? time(),
+            'user_agent' => $request->getHeaderLine('User-Agent'),
+            'ip' => $this->getClientIp($request),
+        ];
+
+        $this->logger->error('Frontend error', $errorData);
+        
+        // 这里可以保存到数据库
+        $this->saveTrackingData('error_log', $errorData);
+
+        $response->getBody()->write(json_encode(['status' => 'success', 'message' => 'Error logged']));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
-    private function readAllRecords(): array
+    private function getClientIp(Request $request): string
     {
-        if (!file_exists($this->dataFile)) {
-            return [];
+        $serverParams = $request->getServerParams();
+        
+        if (!empty($serverParams['HTTP_X_FORWARDED_FOR'])) {
+            return explode(',', $serverParams['HTTP_X_FORWARDED_FOR'])[0];
         }
-
-        $content = file_get_contents($this->dataFile);
-        if ($content === false || trim($content) === '') {
-            return [];
+        
+        if (!empty($serverParams['HTTP_X_REAL_IP'])) {
+            return $serverParams['HTTP_X_REAL_IP'];
         }
-
-        $decoded = json_decode($content, true);
-        return is_array($decoded) ? $decoded : [];
+        
+        return $serverParams['REMOTE_ADDR'] ?? 'unknown';
     }
 
-    private function saveRecord(array $record): void
+    private function saveTrackingData(string $type, array $data): void
     {
-        $records = $this->readAllRecords();
-        $records[] = $record;
-
-        $json = json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        if ($json === false) {
-            throw new \RuntimeException('Failed to encode JSON');
+        // 这里可以实现数据库保存逻辑
+        // 目前只记录到日志文件
+        $logFile = __DIR__ . '/../../logs/tracking.log';
+        $logEntry = date('Y-m-d H:i:s') . " [{$type}] " . json_encode($data) . PHP_EOL;
+        
+        if (!is_dir(dirname($logFile))) {
+            mkdir(dirname($logFile), 0755, true);
         }
-
-        $result = file_put_contents($this->dataFile, $json, LOCK_EX);
-        if ($result === false) {
-            throw new \RuntimeException('Failed to write to file');
-        }
-    }
-
-    private function jsonResponse(Response $response, array $data, int $status = 200): Response
-    {
-        $response->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
-        return $response
-            ->withHeader('Content-Type', 'application/json; charset=utf-8')
-            ->withStatus($status);
+        
+        file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
     }
 }

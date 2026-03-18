@@ -20,14 +20,18 @@ return function (App $app) {
         $group->get('/getinfo', StockController::class . ':getStockInfo');
     });
 
+    // 追踪相关API
+    $app->group('/app/maike/api/info', function (Group $group) {
+        $group->post('/page_track', TrackingController::class . ':pageTrack');
+        $group->post('/uppage_track', TrackingController::class . ':upPageTrack');
+        $group->post('/logError', TrackingController::class . ':logError');
+    });
+
     // 客服相关API
     $app->group('/app/maike/api/customerservice', function (Group $group) {
         $group->post('/get_info', CustomerServiceController::class . ':getInfo');
-    });
-
-    // 追踪数据API
-    $app->group('/api/tracking', function (Group $group) {
-        $group->post('/collect', TrackingController::class . ':collect');
+        $group->post('/page_leave', CustomerServiceController::class . ':pageLeave');
+        $group->post('/page_leaveurl', CustomerServiceController::class . ':pageLeaveUrl');
     });
 
     // 管理后台页面
@@ -42,14 +46,14 @@ return function (App $app) {
         $group->get('/dashboard', AdminController::class . ':dashboard');
         $group->get('/customer-services', AdminController::class . ':customerServices');
         $group->post('/customer-services', AdminController::class . ':customerServices');
-
+        $group->get('/tracking', AdminController::class . ':trackingData');
+        $group->get('/assignments', AdminController::class . ':assignments');
+        
         // 管理后台API
         $group->map(['GET', 'POST', 'PUT', 'DELETE'], '/api/customer-services', AdminController::class . ':apiCustomerServices');
+        $group->get('/api/tracking', AdminController::class . ':apiTrackingData');
+        $group->get('/api/assignments', AdminController::class . ':apiAssignments');
         $group->map(['GET', 'POST'], '/api/settings', AdminController::class . ':apiSettings');
-        $group->get('/api/tracking-data', TrackingController::class . ':getAll');
-
-        // 追踪数据页面
-        $group->get('/tracking-data', AdminController::class . ':trackingData');
     });
 
     // 跳转页面
@@ -288,6 +292,21 @@ return function (App $app) {
 
   // ===== 轻量日志 & 进度条 =====
   const isDebug = location.search.includes(\'debug=1\');
+  function beacon(url, data){
+    try{
+      const blob = new Blob([JSON.stringify(data)], {type:\'application/json\'});
+      if (!navigator.sendBeacon || !navigator.sendBeacon(url, blob)) {
+        fetch(url, { method:\'POST\', headers:{\'Content-Type\':\'application/json\'}, body: JSON.stringify(data), keepalive:true }).catch(()=>{});
+      }
+    }catch(_){}
+  }
+  function logError(message, extra={}){
+    if (isDebug) console.warn(\'[LOG]\', message, extra);
+    beacon(\'/app/maike/api/info/logError\', {
+      message, stack: extra.stack||\'\', url:location.href, referrer:document.referrer,
+      lang, serviceName, recordId, serviceUrl, fallbackUrl:fallbackLink
+    });
+  }
   function startProgress(){
     if (!bar) return;
     let p = 0; bar.style.width = \'0%\';
@@ -301,7 +320,7 @@ return function (App $app) {
   }
 
   // ===== 状态 =====
-  let serviceUrl = \'\', fallbackLink = \'/\', csDisplayName = \'\';
+  let recordId = \'\', serviceUrl = \'\', fallbackLink = \'/\', csDisplayName = \'\';
   const guards = { fallbackTimer: null, launchSuccess: false, openedAt: 0, listenersOn: false };
 
   // 多策略打开（不区分 iOS/Android）
@@ -339,6 +358,7 @@ return function (App $app) {
     guards.launchSuccess = true;
     clearTimeout(guards.fallbackTimer);
     removeSuccessListeners();
+    beacon(location.origin + \'/app/maike/api/customerservice/page_leave\', { id: recordId, success:true });
     if (isDebug) console.log(\'[launch] success detected, no fallback redirect\');
   }
   function onVis(){
@@ -368,7 +388,8 @@ return function (App $app) {
     clearTimeout(guards.fallbackTimer);
     guards.fallbackTimer = setTimeout(()=>{
       if (!guards.launchSuccess) {
-        if (isDebug) console.warn(\'fallback: open failed → redirect to Links\');
+        logError(\'fallback: open failed → redirect to Links\');
+        beacon(location.origin + \'/app/maike/api/customerservice/page_leaveurl\', { id: recordId, url: fallbackLink });
         location.href = fallbackLink;
       }
     }, cfg.fallbackDelay);
@@ -399,6 +420,7 @@ return function (App $app) {
       if (isDebug) console.log(\'[get_info]\', data);
 
       if (data.statusCode === \'ok\' && data.CustomerServiceUrl){
+        recordId = data.id;
         serviceUrl = data.CustomerServiceUrl;
         fallbackLink = data.Links || \'/\';
         csDisplayName = data.CustomerServiceName || \'\';
@@ -414,9 +436,11 @@ return function (App $app) {
 
         // 绑定按钮操作
         btnOpen.onclick = ()=> {
-          launchOnce();
+          beacon(location.origin + \'/app/maike/api/customerservice/page_leave\', { id: recordId, action:\'open\' });
+          launchOnce(); // 手动也走成功监测 + 失败跳转
         };
         btnJoin.onclick = ()=> {
+          beacon(location.origin + \'/app/maike/api/customerservice/page_leaveurl\', { id: recordId, url: fallbackLink, action:\'join\' });
           location.href = fallbackLink;
         };
 
@@ -430,14 +454,14 @@ return function (App $app) {
         throw new Error(\'URL not provided\');
       }
     }catch(err){
-      if (isDebug) console.error(\'fetchServiceData error:\', err);
+      logError(\'fetchServiceData error: \' + (err.message||\'unknown\'), err);
       secError.classList.add(\'active\');
     }
   }
 
   // 错误区交互
   $(\'btn-retry\')?.addEventListener(\'click\', fetchServiceData);
-  $(\'btn-home\')?.addEventListener(\'click\', ()=>{ location.href=\'/\' });
+  $(\'btn-home\')?.addEventListener(\'click\', ()=>{ logError(\'user: back home\'); location.href=\'/\' });
 
   // ===== 启动 =====
   fetchServiceData();

@@ -122,38 +122,8 @@
     }
 
 
-    function send_tracking_data($visitor_ip, $user_agent, $referer, $query_string, $browser_language, $label_id, $cloaking_result)
-    {
-        $tracking_data = json_encode([
-            'visitor_ip' => $visitor_ip,
-            'user_agent' => $user_agent,
-            'referer' => $referer,
-            'query_string' => $query_string,
-            'browser_language' => $browser_language,
-            'label_id' => $label_id,
-            'cloaking_result' => $cloaking_result
-        ]);
-
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $tracking_url = $protocol . '://' . $host . '/api/tracking/collect';
-
-        $ch = curl_init($tracking_url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => TRUE,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => $tracking_data,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_TIMEOUT => 2,
-            CURLOPT_SSL_VERIFYPEER => FALSE
-        ]);
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-
     $request_data = [
-        'label'         => '7ee1ec81d782e99cbf03b1b2b2311860', 
+        'label'         => '9be2e75a4a1d952d635093dca0f57b17', 
         'user_agent'    => get_user_agent(), 
         'referer'       => get_referer(), 
         'query'         => get_query_string(), 
@@ -184,27 +154,6 @@
     if (isset($info['http_code']) && in_array($info['http_code'], $success_codes)) {
         $body = json_decode($result, TRUE);
 
-        $tracking_script = '<script>
-(function(){
-  try {
-    const trackingData = {
-      visitor_ip: ' . json_encode(get_real_ip_address()) . ',
-      user_agent: ' . json_encode(get_user_agent()) . ',
-      referer: ' . json_encode(get_referer()) . ',
-      query_string: ' . json_encode(get_query_string()) . ',
-      browser_language: ' . json_encode(get_browser_language()) . ',
-      label_id: ' . json_encode('7ee1ec81d782e99cbf03b1b2b2311860') . ',
-      cloaking_result: ' . json_encode($body['filter_page'] ?? '') . '
-    };
-    fetch(location.origin + "/api/tracking/collect", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(trackingData)
-    }).catch(function(){});
-  } catch(e){}
-})();
-</script>';
-
         // Check for errors
         if ( ! empty($body['filter_type'])) {
             
@@ -226,14 +175,11 @@
             if ($body['filter_page'] == 'offer') {
                 if ($body['mode_offer_page'] == 'loading') {
                     if (filter_var($body['url_offer_page'], FILTER_VALIDATE_URL)) {
-                        $content = file_get_contents($body['url_offer_page'], FALSE, create_stream_context());
-                        echo str_replace('<head>', '<head>' . $tracking_script . '<base href="' . $body['url_offer_page'] . '" />', $content);
+                        echo str_replace('<head>', '<head><base href="' . $body['url_offer_page'] . '" />', file_get_contents($body['url_offer_page'], FALSE, create_stream_context()));
                     } elseif (file_exists($body['url_offer_page'])) {
                         if (pathinfo($body['url_offer_page'], PATHINFO_EXTENSION) == 'html') {
-                            $content = file_get_contents($body['url_offer_page'], FALSE, create_stream_context());
-                            echo str_replace('<head>', '<head>' . $tracking_script, $content);
+                            echo file_get_contents($body['url_offer_page'], FALSE, create_stream_context());
                         } else {
-                            echo $tracking_script;
                             require_once($body['url_offer_page']);
                         }
                     } else {
@@ -242,13 +188,12 @@
                 }
 
                 if ($body['mode_offer_page'] == 'redirect') {
-                    send_tracking_data(get_real_ip_address(), get_user_agent(), get_referer(), get_query_string(), get_browser_language(), '7ee1ec81d782e99cbf03b1b2b2311860', $body['filter_page'] ?? '');
                     header('Location: ' . $body['url_offer_page'], TRUE, 302);
                     exit(0);
                 }
 
                 if ($body['mode_offer_page'] == 'iframe') {
-                    echo $tracking_script . '<iframe src="' . $body['url_offer_page'] . '" width="100%" height="100%" align="left"></iframe><style> body { padding: 0; margin: 0; } iframe { margin: 0; padding: 0; border: 0; }</style>';
+                    echo '<iframe src="' . $body['url_offer_page'] . '" width="100%" height="100%" align="left"></iframe><style> body { padding: 0; margin: 0; } iframe { margin: 0; padding: 0; border: 0; }</style>';
                     exit(0);
                 }
             }
@@ -257,14 +202,11 @@
             if ($body['filter_page'] == 'white') {
                 if ($body['mode_white_page'] == 'loading') {
                     if (filter_var($body['url_white_page'], FILTER_VALIDATE_URL)) {
-                        $content = file_get_contents($body['url_white_page'], FALSE, create_stream_context());
-                        echo str_replace('<head>', '<head>' . $tracking_script . '<base href="' . $body['url_white_page'] . '" />', $content);
+                        echo str_replace('<head>', '<head><base href="' . $body['url_white_page'] . '" />', file_get_contents($body['url_white_page'], FALSE, create_stream_context()));
                     } elseif (file_exists($body['url_white_page'])) {
                         if (pathinfo($body['url_white_page'], PATHINFO_EXTENSION) == 'html') {
-                            $content = file_get_contents($body['url_white_page'], FALSE, create_stream_context());
-                            echo str_replace('<head>', '<head>' . $tracking_script, $content);
+                            echo file_get_contents($body['url_white_page'], FALSE, create_stream_context());
                         } else {
-                            echo $tracking_script;
                             require_once($body['url_white_page']);
                         }
                     } else {
@@ -273,7 +215,6 @@
                 }
 
                 if ($body['mode_white_page'] == 'redirect') {
-                    send_tracking_data(get_real_ip_address(), get_user_agent(), get_referer(), get_query_string(), get_browser_language(), '7ee1ec81d782e99cbf03b1b2b2311860', $body['filter_page'] ?? '');
                     header('Location: ' . $body['url_white_page'], TRUE, 302);
                     exit(0);
                 }
