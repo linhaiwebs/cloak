@@ -16,8 +16,7 @@ class AdminController
     {
         $this->logger = $logger;
         $this->dataDir = __DIR__ . '/../../data';
-        
-        // 确保数据目录存在
+
         if (!is_dir($this->dataDir)) {
             mkdir($this->dataDir, 0755, true);
         }
@@ -25,7 +24,6 @@ class AdminController
 
     private function isAuthenticated(Request $request): bool
     {
-        // 简单的认证检查 - 在生产环境中应该使用更安全的方法
         $cookies = $request->getCookieParams();
         return isset($cookies['admin_logged_in']) && $cookies['admin_logged_in'] === 'true';
     }
@@ -55,7 +53,6 @@ class AdminController
         $username = $data['username'] ?? '';
         $password = $data['password'] ?? '';
 
-        // 简单的认证 - 在生产环境中应该使用数据库和哈希密码
         if ($username === 'admin' && $password === 'admin123') {
             return $response
                 ->withHeader('Set-Cookie', 'admin_logged_in=true; Path=/; HttpOnly')
@@ -130,31 +127,31 @@ class AdminController
         }
 
         $method = $request->getMethod();
-        
+
         switch ($method) {
             case 'GET':
                 $services = $this->loadCustomerServices();
                 $response->getBody()->write(json_encode($services));
                 return $response->withHeader('Content-Type', 'application/json');
-                
+
             case 'POST':
                 $data = json_decode($request->getBody()->getContents(), true);
                 $result = $this->createCustomerService($data);
                 $response->getBody()->write(json_encode($result));
                 return $response->withHeader('Content-Type', 'application/json');
-                
+
             case 'PUT':
                 $data = json_decode($request->getBody()->getContents(), true);
                 $result = $this->updateCustomerService($data);
                 $response->getBody()->write(json_encode($result));
                 return $response->withHeader('Content-Type', 'application/json');
-                
+
             case 'DELETE':
                 $data = json_decode($request->getBody()->getContents(), true);
                 $result = $this->deleteCustomerService($data['id'] ?? '');
                 $response->getBody()->write(json_encode($result));
                 return $response->withHeader('Content-Type', 'application/json');
-                
+
             default:
                 $response->getBody()->write(json_encode(['error' => 'Method not allowed']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(405);
@@ -218,7 +215,7 @@ class AdminController
             file_put_contents($file, json_encode($defaultSettings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             return $defaultSettings;
         }
-        
+
         return json_decode(file_get_contents($file), true) ?: ['cloaking_enhanced' => false];
     }
 
@@ -226,15 +223,15 @@ class AdminController
     {
         $file = $this->dataDir . '/settings.json';
         $settings = $this->loadSettings();
-        
+
         if (isset($data['cloaking_enhanced'])) {
             $settings['cloaking_enhanced'] = (bool)$data['cloaking_enhanced'];
         }
-        
+
         file_put_contents($file, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        
+
         $this->logger->info('Settings updated', $settings);
-        
+
         return ['success' => true, 'settings' => $settings];
     }
 
@@ -244,14 +241,14 @@ class AdminController
         if (!file_exists($file)) {
             return [];
         }
-        
+
         return json_decode(file_get_contents($file), true) ?: [];
     }
 
     private function createCustomerService(array $data): array
     {
         $services = $this->loadCustomerServices();
-        
+
         $newService = [
             'id' => uniqid('cs_', true),
             'name' => $data['name'] ?? '',
@@ -260,11 +257,11 @@ class AdminController
             'status' => $data['status'] ?? 'active',
             'created_at' => date('Y-m-d H:i:s')
         ];
-        
+
         $services[] = $newService;
-        
+
         file_put_contents($this->dataDir . '/customer_services.json', json_encode($services, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        
+
         return ['success' => true, 'service' => $newService];
     }
 
@@ -272,7 +269,7 @@ class AdminController
     {
         $services = $this->loadCustomerServices();
         $updated = false;
-        
+
         for ($i = 0; $i < count($services); $i++) {
             if ($services[$i]['id'] === ($data['id'] ?? '')) {
                 $services[$i]['name'] = $data['name'] ?? $services[$i]['name'];
@@ -283,12 +280,12 @@ class AdminController
                 break;
             }
         }
-        
+
         if ($updated) {
             file_put_contents($this->dataDir . '/customer_services.json', json_encode($services, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             return ['success' => true];
         }
-        
+
         return ['success' => false, 'error' => 'Service not found'];
     }
 
@@ -296,23 +293,23 @@ class AdminController
     {
         $services = $this->loadCustomerServices();
         $originalCount = count($services);
-        
+
         $services = array_filter($services, function($service) use ($id) {
             return $service['id'] !== $id;
         });
-        
+
         if (count($services) < $originalCount) {
             file_put_contents($this->dataDir . '/customer_services.json', json_encode(array_values($services), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             return ['success' => true];
         }
-        
+
         return ['success' => false, 'error' => 'Service not found'];
     }
 
     private function handleCustomerServiceUpdate(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        
+
         if (isset($data['action'])) {
             switch ($data['action']) {
                 case 'create':
@@ -340,10 +337,10 @@ class AdminController
         if (!file_exists($file)) {
             return [];
         }
-        
+
         $lines = file($file, FILE_IGNORE_NEW_LINES);
         $data = [];
-        
+
         foreach (array_reverse(array_slice($lines, -100)) as $line) {
             if (preg_match('/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[([^\]]+)\] (.+)$/', $line, $matches)) {
                 $data[] = [
@@ -353,7 +350,7 @@ class AdminController
                 ];
             }
         }
-        
+
         return $data;
     }
 
@@ -363,60 +360,645 @@ class AdminController
         if (!file_exists($file)) {
             return [];
         }
-        
+
         $lines = file($file, FILE_IGNORE_NEW_LINES);
         $assignments = [];
-        
+
         foreach (array_reverse(array_slice($lines, -100)) as $line) {
             $assignment = json_decode($line, true);
             if ($assignment) {
                 $assignments[] = $assignment;
             }
         }
-        
+
         return $assignments;
     }
 
-    // 渲染方法
+    private function getCommonStyles(): string
+    {
+        return <<<'CSS'
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --primary: #6366f1;
+                --primary-dark: #4f46e5;
+                --secondary: #8b5cf6;
+                --success: #10b981;
+                --warning: #f59e0b;
+                --danger: #ef4444;
+                --info: #3b82f6;
+                --dark: #1e293b;
+                --gray-50: #f8fafc;
+                --gray-100: #f1f5f9;
+                --gray-200: #e2e8f0;
+                --gray-300: #cbd5e1;
+                --gray-400: #94a3b8;
+                --gray-500: #64748b;
+                --gray-600: #475569;
+                --gray-700: #334155;
+                --gray-800: #1e293b;
+                --gray-900: #0f172a;
+                --sidebar-width: 240px;
+                --header-height: 56px;
+            }
+
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: var(--gray-50);
+                color: var(--gray-900);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .app-container {
+                display: flex;
+                min-height: 100vh;
+            }
+
+            .sidebar {
+                width: var(--sidebar-width);
+                background: white;
+                border-right: 1px solid var(--gray-200);
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                overflow-y: auto;
+            }
+
+            .sidebar-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--gray-200);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .sidebar-logo {
+                width: 32px;
+                height: 32px;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 700;
+                font-size: 16px;
+            }
+
+            .sidebar-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--gray-900);
+            }
+
+            .sidebar-nav {
+                padding: 12px;
+            }
+
+            .nav-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 12px;
+                margin-bottom: 2px;
+                color: var(--gray-600);
+                text-decoration: none;
+                border-radius: 6px;
+                transition: all 0.2s;
+                font-size: 13px;
+            }
+
+            .nav-item:hover {
+                background: var(--gray-50);
+                color: var(--gray-900);
+            }
+
+            .nav-item.active {
+                background: var(--primary);
+                color: white;
+            }
+
+            .nav-icon {
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width);
+                flex: 1;
+                min-height: 100vh;
+            }
+
+            .header {
+                height: var(--header-height);
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+                padding: 0 24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .header-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--gray-900);
+            }
+
+            .header-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .btn {
+                padding: 6px 14px;
+                border: none;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                text-decoration: none;
+            }
+
+            .btn-primary {
+                background: var(--primary);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                background: var(--primary-dark);
+                transform: translateY(-1px);
+            }
+
+            .btn-secondary {
+                background: var(--gray-100);
+                color: var(--gray-700);
+            }
+
+            .btn-secondary:hover {
+                background: var(--gray-200);
+            }
+
+            .btn-success {
+                background: var(--success);
+                color: white;
+            }
+
+            .btn-danger {
+                background: var(--danger);
+                color: white;
+            }
+
+            .btn-sm {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+
+            .content {
+                padding: 20px 24px;
+            }
+
+            .card {
+                background: white;
+                border-radius: 8px;
+                border: 1px solid var(--gray-200);
+                margin-bottom: 16px;
+            }
+
+            .card-header {
+                padding: 14px 18px;
+                border-bottom: 1px solid var(--gray-200);
+                font-weight: 600;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .card-body {
+                padding: 18px;
+            }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                background: white;
+                padding: 16px;
+                border-radius: 8px;
+                border: 1px solid var(--gray-200);
+                transition: all 0.2s;
+            }
+
+            .stat-card:hover {
+                border-color: var(--primary);
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+            }
+
+            .stat-label {
+                font-size: 12px;
+                color: var(--gray-500);
+                margin-bottom: 6px;
+                font-weight: 500;
+            }
+
+            .stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--gray-900);
+            }
+
+            .stat-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 10px;
+                font-size: 18px;
+            }
+
+            .badge {
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                display: inline-block;
+            }
+
+            .badge-success {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .badge-warning {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .badge-danger {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .badge-info {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+
+            th {
+                text-align: left;
+                padding: 10px 12px;
+                background: var(--gray-50);
+                font-weight: 600;
+                color: var(--gray-700);
+                border-bottom: 1px solid var(--gray-200);
+                font-size: 12px;
+            }
+
+            td {
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--gray-100);
+            }
+
+            tr:hover {
+                background: var(--gray-50);
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 2000;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal.active {
+                display: flex;
+            }
+
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                width: 90%;
+                max-width: 500px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .modal-header {
+                padding: 18px 24px;
+                border-bottom: 1px solid var(--gray-200);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .modal-title {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .modal-close {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: var(--gray-100);
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--gray-600);
+            }
+
+            .modal-body {
+                padding: 24px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-label {
+                display: block;
+                margin-bottom: 6px;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--gray-700);
+            }
+
+            .form-control {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid var(--gray-300);
+                border-radius: 6px;
+                font-size: 13px;
+                transition: all 0.2s;
+            }
+
+            .form-control:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            }
+
+            .toggle {
+                position: relative;
+                display: inline-block;
+                width: 44px;
+                height: 24px;
+            }
+
+            .toggle input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--gray-300);
+                transition: 0.3s;
+                border-radius: 24px;
+            }
+
+            .toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 18px;
+                width: 18px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: 0.3s;
+                border-radius: 50%;
+            }
+
+            .toggle input:checked + .toggle-slider {
+                background-color: var(--primary);
+            }
+
+            .toggle input:checked + .toggle-slider:before {
+                transform: translateX(20px);
+            }
+
+            @media (max-width: 768px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                }
+
+                .main-content {
+                    margin-left: 0;
+                }
+            }
+        </style>
+CSS;
+    }
+
     private function renderLoginPage(string $error = ''): string
     {
-        $errorHtml = $error ? "<div class='alert alert-danger'>$error</div>" : '';
-        
+        $errorHtml = $error ? "<div class='error-message'>$error</div>" : '';
+
         return <<<HTML
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理后台登录</title>
+    <title>登录 - 管理后台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 50px; }
-        .login-container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #0056b3; }
-        .alert { padding: 10px; margin-bottom: 20px; border-radius: 4px; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border-left: 3px solid #ef4444;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h2>管理后台登录</h2>
+        <div class="login-header">
+            <div class="logo">A</div>
+            <h1>管理后台</h1>
+            <p class="subtitle">请登录以继续访问</p>
+        </div>
+
         $errorHtml
+
         <form method="POST" action="/admin/login">
             <div class="form-group">
-                <label for="username">用户名:</label>
-                <input type="text" id="username" name="username" required>
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
             </div>
+
             <div class="form-group">
-                <label for="password">密码:</label>
-                <input type="password" id="password" name="password" required>
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
+
             <button type="submit">登录</button>
         </form>
+
+        <div class="login-footer">
+            © 2024 管理后台. All rights reserved.
+        </div>
     </div>
 </body>
 </html>
@@ -427,117 +1009,86 @@ HTML;
     {
         $settings = $this->loadSettings();
         $cloakingStatus = $settings['cloaking_enhanced'] ? '启用' : '禁用';
-        $cloakingClass = $settings['cloaking_enhanced'] ? 'text-success' : 'text-danger';
         $cloakingChecked = $settings['cloaking_enhanced'] ? 'checked' : '';
-        
+
         return <<<HTML
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理后台 - 仪表板</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
-        .navbar { background: #343a40; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar h1 { margin: 0; font-size: 1.5rem; }
-        .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
-        .navbar a:hover { text-decoration: underline; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .nav-tabs { display: flex; border-bottom: 1px solid #dee2e6; margin-bottom: 2rem; }
-        .nav-tab { padding: 0.75rem 1.5rem; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; }
-        .nav-tab.active { border-bottom-color: #007bff; color: #007bff; font-weight: bold; }
-        .nav-tab:hover { background: #f8f9fa; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-weight: bold; }
-        .card-body { padding: 1.5rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
-        .stat-number { font-size: 2rem; font-weight: bold; color: #007bff; }
-        .stat-label { color: #6c757d; margin-top: 0.5rem; }
-        .text-success { color: #28a745 !important; }
-        .text-danger { color: #dc3545 !important; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn:hover { opacity: 0.9; }
-        .form-group { margin-bottom: 1rem; }
-        .form-control { width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; }
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2196F3; }
-        input:focus + .slider { box-shadow: 0 0 1px #2196F3; }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #eee; }
-        .setting-item:last-child { border-bottom: none; }
-        .setting-label { font-weight: bold; }
-        .setting-description { color: #6c757d; font-size: 0.9rem; margin-top: 0.25rem; }
-    </style>
+    <title>仪表板 - 管理后台</title>
+    {$this->getCommonStyles()}
 </head>
 <body>
-    <nav class="navbar">
-        <h1>管理后台</h1>
-        <div>
-            <a href="/admin/dashboard">仪表板</a>
-            <a href="/admin/customer-services">客服管理</a>
-            <a href="/admin/tracking">追踪数据</a>
-            <a href="/admin/assignments">分配记录</a>
-            <a href="/admin/logout">退出</a>
-        </div>
-    </nav>
+    <div class="app-container">
+        {$this->getSidebar('dashboard')}
 
-    <div class="container">
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showTab('overview')">概览</button>
-            <button class="nav-tab" onclick="showTab('settings')">系统设置</button>
-        </div>
-
-        <div id="overview" class="tab-content active">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="total-assignments">-</div>
-                    <div class="stat-label">总分配数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="success-rate">-</div>
-                    <div class="stat-label">成功率</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="active-services">-</div>
-                    <div class="stat-label">活跃客服</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number $cloakingClass">$cloakingStatus</div>
-                    <div class="stat-label">引流加强</div>
+        <div class="main-content">
+            <div class="header">
+                <h1 class="header-title">仪表板</h1>
+                <div class="header-actions">
+                    <span style="font-size: 12px; color: var(--gray-500);">欢迎回来</span>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">最近活动</div>
-                <div class="card-body">
-                    <div id="recent-activity">加载中...</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="settings" class="tab-content">
-            <div class="card">
-                <div class="card-header">系统设置</div>
-                <div class="card-body">
-                    <div class="setting-item">
-                        <div>
-                            <div class="setting-label">引流加强</div>
-                            <div class="setting-description">启用后，只允许来自Google搜索的用户访问客服分配接口</div>
+            <div class="content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            📊
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="cloaking-switch" onchange="toggleCloaking()" $cloakingChecked>
-                            <span class="slider"></span>
-                        </label>
+                        <div class="stat-label">总分配数</div>
+                        <div class="stat-value" id="total-assignments">-</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
+                            ✓
+                        </div>
+                        <div class="stat-label">成功率</div>
+                        <div class="stat-value" id="success-rate">-</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+                            👥
+                        </div>
+                        <div class="stat-label">活跃客服</div>
+                        <div class="stat-value" id="active-services">-</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #92400e;">
+                            🛡️
+                        </div>
+                        <div class="stat-label">引流加强</div>
+                        <div class="stat-value" style="font-size: 18px;">$cloakingStatus</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        系统设置
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">引流加强模式</div>
+                                <div style="font-size: 12px; color: var(--gray-500);">启用后，只允许来自Google搜索的用户访问客服分配接口</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cloaking-switch" onchange="toggleCloaking()" $cloakingChecked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">最近活动</div>
+                    <div class="card-body">
+                        <div id="recent-activity" style="font-size: 13px; color: var(--gray-500);">加载中...</div>
                     </div>
                 </div>
             </div>
@@ -545,84 +1096,78 @@ HTML;
     </div>
 
     <script>
-        function showTab(tabName) {
-            // 隐藏所有标签内容
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // 移除所有标签的活跃状态
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // 显示选中的标签内容
-            document.getElementById(tabName).classList.add('active');
-            
-            // 设置选中的标签为活跃状态
-            event.target.classList.add('active');
-        }
-
         function toggleCloaking() {
             const checkbox = document.getElementById('cloaking-switch');
             const enabled = checkbox.checked;
-            
+
             fetch('/admin/api/settings', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    cloaking_enhanced: enabled
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cloaking_enhanced: enabled })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('设置已更新');
-                    location.reload();
+                    showToast('设置已更新', 'success');
+                    setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert('更新失败');
-                    checkbox.checked = !enabled; // 恢复原状态
+                    showToast('更新失败', 'error');
+                    checkbox.checked = !enabled;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('更新失败');
-                checkbox.checked = !enabled; // 恢复原状态
+                showToast('更新失败', 'error');
+                checkbox.checked = !enabled;
             });
         }
 
-        // 加载统计数据
         function loadStats() {
             Promise.all([
                 fetch('/admin/api/assignments').then(r => r.json()),
                 fetch('/admin/api/customer-services').then(r => r.json())
             ]).then(([assignments, services]) => {
                 document.getElementById('total-assignments').textContent = assignments.length;
-                
+
                 const successCount = assignments.filter(a => a.launch_success).length;
                 const successRate = assignments.length > 0 ? Math.round((successCount / assignments.length) * 100) : 0;
                 document.getElementById('success-rate').textContent = successRate + '%';
-                
+
                 const activeServices = services.filter(s => s.status === 'active').length;
                 document.getElementById('active-services').textContent = activeServices;
-                
-                // 显示最近活动
-                const recentActivity = assignments.slice(0, 10).map(a => 
-                    `<div style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
-                        <strong>\${a.stockcode || '未知股票'}</strong> - \${a.customer_service_name} 
-                        <span style="color: #6c757d; float: right;">\${a.created_at}</span>
+
+                const recentActivity = assignments.slice(0, 5).map(a =>
+                    `<div style="padding: 10px 0; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between;">
+                        <span><strong>\${a.stockcode || '未知'}</strong> → \${a.customer_service_name}</span>
+                        <span style="color: var(--gray-400); font-size: 12px;">\${a.created_at}</span>
                     </div>`
                 ).join('');
-                
+
                 document.getElementById('recent-activity').innerHTML = recentActivity || '暂无活动记录';
             }).catch(error => {
                 console.error('Error loading stats:', error);
             });
         }
 
-        // 页面加载时执行
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'success' ? '#10b981' : '#ef4444'};
+                color: white;
+                border-radius: 8px;
+                font-size: 13px;
+                z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', loadStats);
     </script>
 </body>
@@ -638,102 +1183,86 @@ HTML;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>客服管理</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
-        .navbar { background: #343a40; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar h1 { margin: 0; font-size: 1.5rem; }
-        .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
-        .navbar a:hover { text-decoration: underline; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .card-body { padding: 1.5rem; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn:hover { opacity: 0.9; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #dee2e6; }
-        .table th { background: #f8f9fa; font-weight: bold; }
-        .status-active { color: #28a745; font-weight: bold; }
-        .status-inactive { color: #dc3545; font-weight: bold; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: white; margin: 5% auto; padding: 2rem; width: 80%; max-width: 500px; border-radius: 8px; }
-        .form-group { margin-bottom: 1rem; }
-        .form-control { width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: black; }
-    </style>
+    <title>客服管理 - 管理后台</title>
+    {$this->getCommonStyles()}
 </head>
 <body>
-    <nav class="navbar">
-        <h1>客服管理</h1>
-        <div>
-            <a href="/admin/dashboard">仪表板</a>
-            <a href="/admin/customer-services">客服管理</a>
-            <a href="/admin/tracking">追踪数据</a>
-            <a href="/admin/assignments">分配记录</a>
-            <a href="/admin/logout">退出</a>
-        </div>
-    </nav>
+    <div class="app-container">
+        {$this->getSidebar('customer-services')}
 
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                客服列表
-                <button class="btn btn-primary" onclick="showAddModal()">添加客服</button>
+        <div class="main-content">
+            <div class="header">
+                <h1 class="header-title">客服管理</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddModal()">
+                        ➕ 添加客服
+                    </button>
+                </div>
             </div>
-            <div class="card-body">
-                <table class="table" id="services-table">
-                    <thead>
-                        <tr>
-                            <th>名称</th>
-                            <th>URL</th>
-                            <th>备用URL</th>
-                            <th>状态</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 数据将通过JavaScript加载 -->
-                    </tbody>
-                </table>
+
+            <div class="content">
+                <div class="card">
+                    <div class="card-body" style="padding: 0;">
+                        <table id="services-table">
+                            <thead>
+                                <tr>
+                                    <th>名称</th>
+                                    <th>URL</th>
+                                    <th>备用URL</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th style="text-align: right;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6" style="text-align: center; color: var(--gray-400);">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 添加/编辑模态框 -->
-    <div id="serviceModal" class="modal">
+    <div class="modal" id="serviceModal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modal-title">添加客服</h2>
-            <form id="service-form">
-                <input type="hidden" id="service-id">
-                <div class="form-group">
-                    <label for="service-name">名称:</label>
-                    <input type="text" id="service-name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="service-url">URL:</label>
-                    <input type="url" id="service-url" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="service-fallback">备用URL:</label>
-                    <input type="url" id="service-fallback" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="service-status">状态:</label>
-                    <select id="service-status" class="form-control">
-                        <option value="active">活跃</option>
-                        <option value="inactive">停用</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-success">保存</button>
-                <button type="button" class="btn btn-danger" onclick="closeModal()">取消</button>
-            </form>
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">添加客服</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="service-form" onsubmit="handleSubmit(event)">
+                    <input type="hidden" id="service-id">
+
+                    <div class="form-group">
+                        <label class="form-label">名称</label>
+                        <input type="text" id="service-name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">URL</label>
+                        <input type="url" id="service-url" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">备用URL</label>
+                        <input type="url" id="service-fallback" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">状态</label>
+                        <select id="service-status" class="form-control">
+                            <option value="active">活跃</option>
+                            <option value="inactive">停用</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">保存</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -752,16 +1281,22 @@ HTML;
 
         function renderServicesTable() {
             const tbody = document.querySelector('#services-table tbody');
+
+            if (services.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--gray-400); padding: 40px;">暂无客服数据</td></tr>';
+                return;
+            }
+
             tbody.innerHTML = services.map(service => `
                 <tr>
-                    <td>\${service.name}</td>
-                    <td><a href="\${service.url}" target="_blank">\${service.url}</a></td>
-                    <td><a href="\${service.fallback_url}" target="_blank">\${service.fallback_url}</a></td>
-                    <td><span class="status-\${service.status}">\${service.status === 'active' ? '活跃' : '停用'}</span></td>
-                    <td>\${service.created_at}</td>
-                    <td>
-                        <button class="btn btn-primary" onclick="editService('\${service.id}')">编辑</button>
-                        <button class="btn btn-danger" onclick="deleteService('\${service.id}')">删除</button>
+                    <td><strong>\${service.name}</strong></td>
+                    <td><a href="\${service.url}" target="_blank" style="color: var(--primary); text-decoration: none;">\${service.url.substring(0, 40)}...</a></td>
+                    <td><a href="\${service.fallback_url}" target="_blank" style="color: var(--gray-500); text-decoration: none; font-size: 12px;">\${service.fallback_url}</a></td>
+                    <td><span class="badge badge-\${service.status === 'active' ? 'success' : 'danger'}">\${service.status === 'active' ? '活跃' : '停用'}</span></td>
+                    <td style="font-size: 12px; color: var(--gray-500);">\${service.created_at}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-secondary btn-sm" onclick="editService('\${service.id}')">编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteService('\${service.id}')">删除</button>
                     </td>
                 </tr>
             `).join('');
@@ -771,7 +1306,7 @@ HTML;
             document.getElementById('modal-title').textContent = '添加客服';
             document.getElementById('service-form').reset();
             document.getElementById('service-id').value = '';
-            document.getElementById('serviceModal').style.display = 'block';
+            document.getElementById('serviceModal').classList.add('active');
         }
 
         function editService(id) {
@@ -783,7 +1318,7 @@ HTML;
                 document.getElementById('service-url').value = service.url;
                 document.getElementById('service-fallback').value = service.fallback_url;
                 document.getElementById('service-status').value = service.status;
-                document.getElementById('serviceModal').style.display = 'block';
+                document.getElementById('serviceModal').classList.add('active');
             }
         }
 
@@ -797,9 +1332,10 @@ HTML;
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        showToast('删除成功', 'success');
                         loadServices();
                     } else {
-                        alert('删除失败');
+                        showToast('删除失败', 'error');
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -807,12 +1343,12 @@ HTML;
         }
 
         function closeModal() {
-            document.getElementById('serviceModal').style.display = 'none';
+            document.getElementById('serviceModal').classList.remove('active');
         }
 
-        document.getElementById('service-form').addEventListener('submit', function(e) {
+        function handleSubmit(e) {
             e.preventDefault();
-            
+
             const formData = {
                 id: document.getElementById('service-id').value,
                 name: document.getElementById('service-name').value,
@@ -822,7 +1358,7 @@ HTML;
             };
 
             const method = formData.id ? 'PUT' : 'POST';
-            
+
             fetch('/admin/api/customer-services', {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -831,16 +1367,35 @@ HTML;
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    showToast('保存成功', 'success');
                     closeModal();
                     loadServices();
                 } else {
-                    alert('保存失败');
+                    showToast('保存失败', 'error');
                 }
             })
             .catch(error => console.error('Error:', error));
-        });
+        }
 
-        // 页面加载时执行
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: \${type === 'success' ? '#10b981' : '#ef4444'};
+                color: white;
+                border-radius: 8px;
+                font-size: 13px;
+                z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', loadServices);
     </script>
 </body>
@@ -856,45 +1411,55 @@ HTML;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>追踪数据</title>
+    <title>追踪数据 - 管理后台</title>
+    {$this->getCommonStyles()}
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
-        .navbar { background: #343a40; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar h1 { margin: 0; font-size: 1.5rem; }
-        .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
-        .navbar a:hover { text-decoration: underline; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-weight: bold; }
-        .card-body { padding: 1.5rem; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #dee2e6; }
-        .table th { background: #f8f9fa; font-weight: bold; }
-        .log-entry { margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; }
-        .log-timestamp { font-weight: bold; color: #007bff; }
-        .log-type { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .log-type-page_track { background: #d4edda; color: #155724; }
-        .log-type-uppage_track { background: #d1ecf1; color: #0c5460; }
-        .log-type-error_log { background: #f8d7da; color: #721c24; }
+        .log-entry {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: var(--gray-50);
+            border-radius: 6px;
+            border-left: 3px solid var(--gray-300);
+            font-size: 12px;
+        }
+
+        .log-timestamp {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .log-data {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-top: 8px;
+        }
+
+        pre {
+            margin: 0;
+            font-size: 11px;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <h1>追踪数据</h1>
-        <div>
-            <a href="/admin/dashboard">仪表板</a>
-            <a href="/admin/customer-services">客服管理</a>
-            <a href="/admin/tracking">追踪数据</a>
-            <a href="/admin/assignments">分配记录</a>
-            <a href="/admin/logout">退出</a>
-        </div>
-    </nav>
+    <div class="app-container">
+        {$this->getSidebar('tracking')}
 
-    <div class="container">
-        <div class="card">
-            <div class="card-header">最近追踪记录</div>
-            <div class="card-body">
-                <div id="tracking-data">加载中...</div>
+        <div class="main-content">
+            <div class="header">
+                <h1 class="header-title">追踪数据</h1>
+            </div>
+
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">最近追踪记录 (100条)</div>
+                    <div class="card-body">
+                        <div id="tracking-data">加载中...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -906,22 +1471,42 @@ HTML;
                 .then(data => {
                     const container = document.getElementById('tracking-data');
                     if (data.length === 0) {
-                        container.innerHTML = '<p>暂无追踪数据</p>';
+                        container.innerHTML = '<p style="text-align: center; color: var(--gray-400); padding: 40px;">暂无追踪数据</p>';
                         return;
                     }
-                    
+
                     container.innerHTML = data.map(entry => `
-                        <div class="log-entry">
+                        <div class="log-entry" style="border-left-color: \${getTypeColor(entry.type)};">
                             <div class="log-timestamp">\${entry.timestamp}</div>
-                            <span class="log-type log-type-\${entry.type}">\${entry.type}</span>
-                            <pre style="margin-top: 0.5rem; white-space: pre-wrap;">\${JSON.stringify(entry.data, null, 2)}</pre>
+                            <span class="badge badge-\${getTypeBadge(entry.type)}">\${entry.type}</span>
+                            <div class="log-data">
+                                <pre>\${JSON.stringify(entry.data, null, 2)}</pre>
+                            </div>
                         </div>
                     `).join('');
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    document.getElementById('tracking-data').innerHTML = '<p>加载失败</p>';
+                    document.getElementById('tracking-data').innerHTML = '<p style="text-align: center; color: var(--danger);">加载失败</p>';
                 });
+        }
+
+        function getTypeColor(type) {
+            const colors = {
+                'page_track': '#10b981',
+                'uppage_track': '#3b82f6',
+                'error_log': '#ef4444'
+            };
+            return colors[type] || '#94a3b8';
+        }
+
+        function getTypeBadge(type) {
+            const badges = {
+                'page_track': 'success',
+                'uppage_track': 'info',
+                'error_log': 'danger'
+            };
+            return badges[type] || 'info';
         }
 
         document.addEventListener('DOMContentLoaded', loadTrackingData);
@@ -939,56 +1524,39 @@ HTML;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>分配记录</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
-        .navbar { background: #343a40; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar h1 { margin: 0; font-size: 1.5rem; }
-        .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
-        .navbar a:hover { text-decoration: underline; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-weight: bold; }
-        .card-body { padding: 1.5rem; }
-        .table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        .table th, .table td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #dee2e6; }
-        .table th { background: #f8f9fa; font-weight: bold; }
-        .status-success { color: #28a745; font-weight: bold; }
-        .status-failed { color: #dc3545; font-weight: bold; }
-        .status-pending { color: #ffc107; font-weight: bold; }
-    </style>
+    <title>分配记录 - 管理后台</title>
+    {$this->getCommonStyles()}
 </head>
 <body>
-    <nav class="navbar">
-        <h1>分配记录</h1>
-        <div>
-            <a href="/admin/dashboard">仪表板</a>
-            <a href="/admin/customer-services">客服管理</a>
-            <a href="/admin/tracking">追踪数据</a>
-            <a href="/admin/assignments">分配记录</a>
-            <a href="/admin/logout">退出</a>
-        </div>
-    </nav>
+    <div class="app-container">
+        {$this->getSidebar('assignments')}
 
-    <div class="container">
-        <div class="card">
-            <div class="card-header">最近分配记录</div>
-            <div class="card-body">
-                <table class="table" id="assignments-table">
-                    <thead>
-                        <tr>
-                            <th>时间</th>
-                            <th>股票代码</th>
-                            <th>客服名称</th>
-                            <th>状态</th>
-                            <th>IP地址</th>
-                            <th>用户代理</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 数据将通过JavaScript加载 -->
-                    </tbody>
-                </table>
+        <div class="main-content">
+            <div class="header">
+                <h1 class="header-title">分配记录</h1>
+            </div>
+
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">最近分配记录 (100条)</div>
+                    <div class="card-body" style="padding: 0;">
+                        <table id="assignments-table">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>股票代码</th>
+                                    <th>客服名称</th>
+                                    <th>状态</th>
+                                    <th>IP地址</th>
+                                    <th>用户代理</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6" style="text-align: center; color: var(--gray-400);">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1000,37 +1568,37 @@ HTML;
                 .then(data => {
                     const tbody = document.querySelector('#assignments-table tbody');
                     if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6">暂无分配记录</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--gray-400); padding: 40px;">暂无分配记录</td></tr>';
                         return;
                     }
-                    
+
                     tbody.innerHTML = data.map(assignment => {
                         let status = '待处理';
-                        let statusClass = 'status-pending';
-                        
+                        let badgeClass = 'badge-warning';
+
                         if (assignment.launch_success) {
                             status = '成功';
-                            statusClass = 'status-success';
+                            badgeClass = 'badge-success';
                         } else if (assignment.page_leave_at || assignment.fallback_redirect_at) {
                             status = '失败';
-                            statusClass = 'status-failed';
+                            badgeClass = 'badge-danger';
                         }
-                        
+
                         return `
                             <tr>
-                                <td>\${assignment.created_at}</td>
-                                <td>\${assignment.stockcode || '-'}</td>
+                                <td style="font-size: 12px;">\${assignment.created_at}</td>
+                                <td><strong>\${assignment.stockcode || '-'}</strong></td>
                                 <td>\${assignment.customer_service_name}</td>
-                                <td><span class="\${statusClass}">\${status}</span></td>
-                                <td>\${assignment.ip}</td>
-                                <td title="\${assignment.user_agent}">\${assignment.user_agent.substring(0, 50)}...</td>
+                                <td><span class="badge \${badgeClass}">\${status}</span></td>
+                                <td style="font-size: 12px; color: var(--gray-500);">\${assignment.ip}</td>
+                                <td style="font-size: 11px; color: var(--gray-400); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="\${assignment.user_agent}">\${assignment.user_agent}</td>
                             </tr>
                         `;
                     }).join('');
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    document.querySelector('#assignments-table tbody').innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
+                    document.querySelector('#assignments-table tbody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败</td></tr>';
                 });
         }
 
@@ -1038,6 +1606,41 @@ HTML;
     </script>
 </body>
 </html>
+HTML;
+    }
+
+    private function getSidebar(string $active = ''): string
+    {
+        $nav = [
+            ['id' => 'dashboard', 'label' => '仪表板', 'icon' => '📊', 'url' => '/admin/dashboard'],
+            ['id' => 'customer-services', 'label' => '客服管理', 'icon' => '👥', 'url' => '/admin/customer-services'],
+            ['id' => 'tracking', 'label' => '追踪数据', 'icon' => '📈', 'url' => '/admin/tracking'],
+            ['id' => 'assignments', 'label' => '分配记录', 'icon' => '📋', 'url' => '/admin/assignments'],
+        ];
+
+        $navHtml = '';
+        foreach ($nav as $item) {
+            $activeClass = $item['id'] === $active ? 'active' : '';
+            $navHtml .= "<a href='{$item['url']}' class='nav-item {$activeClass}'>
+                <span class='nav-icon'>{$item['icon']}</span>
+                {$item['label']}
+            </a>";
+        }
+
+        return <<<HTML
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">A</div>
+                <span class="sidebar-title">管理后台</span>
+            </div>
+            <div class="sidebar-nav">
+                $navHtml
+                <a href="/admin/logout" class="nav-item" style="margin-top: 20px; color: var(--danger);">
+                    <span class="nav-icon">🚪</span>
+                    退出登录
+                </a>
+            </div>
+        </div>
 HTML;
     }
 }
