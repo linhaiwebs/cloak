@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-MH7RH4LV');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>マーケットトレンド · 1:1 LP</title>
+    <!-- Tailwind via CDN + 軽微なカスタム -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 完全1:1の雰囲気を保つため、ベースはあくまで自然体。画像のテイストを再現 */
+        body {
+            background-color: #f6f7f9;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .card-shadow {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02), 0 2px 6px rgba(0, 20, 40, 0.05);
+        }
+
+        .separator-dash {
+            border-top: 2px dashed #d0d5dd;
+            opacity: 0.5;
+            width: 100%;
+            margin: 1.5rem 0;
+        }
+
+        /* 画像内の丸要素・装飾を再現する簡易スタイル */
+        .badge-neutral {
+            background-color: #eef2f6;
+            color: #1e293b;
+            font-weight: 500;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .matrix-tag {
+            background: white;
+            border-radius: 40px;
+            padding: 0.2rem 0.9rem;
+            border: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+        }
+
+        /* ===== 固定フッターボタン ===== */
+        .fixed-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 60%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(100, 116, 139, 0.15);
+            padding: 0.85rem 1.5rem 1.2rem 1.5rem;
+            box-shadow: 0 -8px 25px rgba(0, 10, 30, 0.03);
+            z-index: 50;
+            text-align: center;
+        }
+
+        .cta-button {
+            background: linear-gradient(115deg, #1f2a3f, #28344e);
+            color: white;
+            font-weight: 600;
+            font-size: 1.15rem;
+            letter-spacing: 0.03em;
+            padding: 0.9rem 2rem;
+            border: none;
+            border-radius: 60px;
+            box-shadow: 0 12px 24px -10px rgba(20, 40, 70, 0.35), 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .cta-button:hover {
+            background: linear-gradient(115deg, #25324b, #2e3c5a);
+            transform: scale(1.02);
+            box-shadow: 0 16px 28px -8px #101b2e75;
+        }
+
+        .cta-button:active {
+            transform: scale(0.98);
+        }
+
+        /* コンテンツがボタンに隠れないように bottom パディング */
+        .spacer-for-fixed-bottom {
+            padding-bottom: 95px;
+        }
+
+        /* 既存のmainカードに少し手を加える (最大幅はそのまま) */
+        main {
+            transition: all 0.2s;
+        }
+
+        /* カスタムスクロールバー */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+
+<body class="flex items-start justify-center p-4 min-h-screen relative">
+
+    <!-- 固定ボタン: フッターに配置 (fixed-bottom) -->
+    <div class="fixed-bottom">
+        <button class="cta-button" id="mainCta" onclick="handleCtaClick(event)">
+            お問い合わせ
+        </button>
+    </div>
+
+    <!-- メインカード(1:1) - 下部余白をプラスして固定ボタンと重ならないように -->
+    <main
+        class="w-full max-w-[500px] bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100/80 spacer-for-fixed-bottom relative z-10">
+        <!-- メインコンテンツ (スクロール可) -->
+        <div class="px-6 py-4 space-y-6 max-h-[700px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300"
+            id="__body">
+            <!-- コンテンツはJavaScriptで動的に生成されます -->
+        </div>
+
+        <!-- 元あった薄いボトムバー (現在は固定CTAがあるため、視覚的なアクセント) -->
+        <div class="border-t border-gray-100 px-6 py-3 bg-gray-50/50 flex justify-between text-[0.5rem] text-gray-400">
+            <span>公開市場データ / 取引所公告</span>
+            <span>AI透明性 v1.0</span>
+        </div>
+
+        <!-- Fixed Bottom Button -->
+        <div class="fixed-bottom">
+            <button class="cta-button" id="mainCta" onclick="handleCtaClick(event)">
+                無料で資料を受け取る
+            </button>
+        </div>
+    </main>
+
+    <!-- トップナビゲーションカプセル -->
+    <div id="__pillNav"
+        class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-100 z-40 px-4 py-2 overflow-x-auto whitespace-nowrap hidden">
+        <!-- ナビゲーション項目はJavaScriptで動的に生成されます -->
+    </div>
+
+    <!-- 目次リンクコンテナ -->
+    <div id="__tocLinks" class="hidden">
+        <!-- 目次リンクはJavaScriptで動的に生成されます -->
+    </div>
+
+    <!-- Cookie同意ポップアップ -->
+    <div id="__cookie"
+        class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50 hidden">
+        <div class="max-w-md mx-auto">
+            <p class="text-sm text-gray-700 mb-3">当サイトでは、ユーザー体験を向上させるためにCookieを使用しています。詳細については、プライバシーポリシーをご確認ください。</p>
+            <div class="flex gap-2">
+                <button id="acceptCookie"
+                    class="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">受け入れる</button>
+                <button id="rejectCookie"
+                    class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-300 transition">拒否する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 目次ドロワー -->
+    <div id="__toc" class="fixed inset-0 bg-black/50 z-50 hidden">
+        <div class="absolute right-0 top-0 bottom-0 w-3/4 max-w-sm bg-white shadow-xl p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">目次</h3>
+                <button id="closeToc" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="tocContent" class="space-y-2">
+                <!-- 目次コンテンツはJavaScriptで動的に生成されます -->
+            </div>
+        </div>
+    </div>
+
+    <!-- データ設定 -->
+    <script>
+        // ページコンテンツデータ
+        window.__COPY = {
+            hero_title: "Market Trends Overview",
+            hero_subtitle: "最新の市場インパクトを中立的にお届けします。",
+            tags: ["#重要な声明", "#データ注記"],
+            compliance_banner: {
+                title: "重要な声明（先にご確認ください）",
+                items: [
+                    "投資にはリスクがあります。AIの影響は参考情報であり、投資助言ではありません。",
+                    "当サイトは個別の投資助言を行わず、口座開設・取引の仲介も行いません。",
+                    "過去の結果は将来の成果を保証しません。"
+                ]
+            },
+            sections: [
+                {
+                    id: "market-trends",
+                    title: "市場トレンド概要",
+                    content: {
+                        items: [
+                            {
+                                title: "市場動向",
+                                list: ["ニュース分析", "技術指標"]
+                            },
+                            {
+                                text: "信頼できる情報をもとに、投資判断をサポートします。"
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: "signal-background",
+                    title: "シグナルと背景データ説明",
+                    tag: "信号与背景",
+                    content: {
+                        description: "当社のサービスは、ユーザー様により関連性の高い体験を提供するために、シグナルと背景データを活用しています。シグナルとは、ユーザー様の行動や興味に関する情報であり、背景データにはデバイス情報やブラウザ設定などが含まれます。",
+                        indicators: [
+                            {
+                                label: "市場のポジティブリティ",
+                                value: "高いポジティブ",
+                                class: "bg-emerald-100 text-emerald-700"
+                            },
+                            {
+                                label: "ニュースの影響",
+                                value: "特定の経済ニュース",
+                                class: "bg-blue-50 text-blue-600"
+                            }
+                        ],
+                        note: "これらのデータは、サービスの改善とパーソナライズされたコンテンツの提供のみを目的として収集・利用されます。"
+                    }
+                },
+                {
+                    id: "data-notes",
+                    title: "データ注記",
+                    content: {
+                        items: [
+                            {
+                                icon: "📊",
+                                label: "公開市場データ",
+                                description: "公式の市場データを利用しています。"
+                            },
+                            {
+                                icon: "🏛️",
+                                label: "取引所の公告",
+                                description: "取引所からの公式発表を参照しています。"
+                            },
+                            {
+                                icon: "🌐",
+                                label: "第三者への情勢",
+                                description: "信頼できる第三者から情報を収集しています。"
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: "privacy",
+                    title: "プライバシー",
+                    content: {
+                        description: "当社はユーザー様のプライバシーを最優先事項と考えています。",
+                        items: [
+                            {
+                                label: "個人情報の適切化",
+                                description: "適切に保護、無断提供なし"
+                            },
+                            {
+                                label: "データ管理",
+                                description: "収集するすべての個人データは、適用されるデータ保護法規に従って厳重に管理されています。"
+                            },
+                            {
+                                label: "ユーザー権利",
+                                description: "ユーザー様は、自身のデータにアクセスし、管理し、必要に応じて削除する権利を有しています。"
+                            }
+                        ],
+                        note: "当社のプライバシーポリシーでは、データの収集、使用、共有に関する詳細情報を提供しています。"
+                    }
+                },
+                {
+                    id: "ai-transparency",
+                    title: "AIの透明性",
+                    content: {
+                        description: "当社のAIシステムは透明性と説明可能性を重視して設計されています。AIがどのように意思決定を行うか、どのようなデータが使用されているかについて、ユーザー様に明確に説明することを約束します。",
+                        items: [
+                            {
+                                icon: "📈",
+                                text: "技術指標のデータ解析"
+                            },
+                            {
+                                icon: "📰",
+                                text: "経済ニュースの感情分析"
+                            },
+                            {
+                                icon: "📑",
+                                text: "企業の財務報告要約"
+                            },
+                            {
+                                icon: "🔍",
+                                text: "一般的な指標・公開情報・イベント背景を整理し、「何が起きたか」を説明します。"
+                            },
+                            {
+                                icon: "📌",
+                                text: "出力は予測ではなく要約であり、正確性や網羅性は保証しません。"
+                            },
+                            {
+                                icon: "⏳",
+                                text: "データは遅延・修正の可能性があります。一次情報を確認してください。"
+                            }
+                        ],
+                        note: "当社はAIの倫理的使用を推進し、バイアスのない公平なシステムの維持に努めています。AIの分析結果は常に見直され、精度の向上を目指しています。"
+                    }
+                },
+                {
+                    id: "neutral-matrix",
+                    title: "中立マトリックス",
+                    content: {
+                        description: "当社のコンテンツ要約機能は、多角的な視点を考慮し、中立的かつ客観的な情報提供を心がけています。",
+                        tags: [
+                            {
+                                icon: "📉",
+                                label: "ボラティリティ"
+                            },
+                            {
+                                icon: "🏭",
+                                label: "経済指標"
+                            },
+                            {
+                                icon: "📊",
+                                label: "企業業績"
+                            },
+                            {
+                                icon: "🌎",
+                                label: "国際情勢"
+                            }
+                        ],
+                        note: "情報の正確性と公平性を確保するため、複数の情報源を参照し、偏りのない要約を作成するプロセスを採用しています。"
+                    }
+                },
+                {
+                    id: "operation-info",
+                    title: "運営情報",
+                    content: {
+                        description: "当社サービスの運営に関する情報は、透明性を持って公開されています。",
+                        items: [
+                            {
+                                label: "サービスの稼働状況",
+                                description: "サービスの稼働状況をリアルタイムで公開しています。"
+                            },
+                            {
+                                label: "更新情報",
+                                description: "サービスの更新情報は定期的に提供されます。"
+                            },
+                            {
+                                label: "重要なお知らせ",
+                                description: "重要なお知らせは迅速にユーザー様にお届けします。"
+                            }
+                        ],
+                        note: "ユーザー様が常に最新情報を把握できるよう努めています。"
+                    }
+                },
+                {
+                    id: "glossary",
+                    title: "用語集",
+                    content: {
+                        items: [
+                            {
+                                icon: "📘",
+                                label: "オートメーション",
+                                description: "市場の価格変動の度合いを示す指標。"
+                            },
+                            {
+                                icon: "👀",
+                                label: "モニタリング",
+                                description: "さまざまな情報源を更新しています。"
+                            },
+                            {
+                                icon: "👤",
+                                label: "お客様の情報",
+                                description: "安全に保護されています。"
+                            },
+                            {
+                                icon: "📈",
+                                label: "ボラティリティ",
+                                description: "市場価格の変動率を示す指標。"
+                            },
+                            {
+                                icon: "💹",
+                                label: "リターン",
+                                description: "投資から得られる収益率。"
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: "security",
+                    title: "セキュリティ",
+                    content: {
+                        description: "当社は最高レベルのセキュリティ基準を採用し、ユーザー様のデータを保護しています。",
+                        items: [
+                            {
+                                label: "暗号化技術",
+                                description: "最新の暗号化技術を採用しています。"
+                            },
+                            {
+                                label: "セキュリティ監査",
+                                description: "定期的なセキュリティ監査を実施しています。"
+                            },
+                            {
+                                label: "システム監視",
+                                description: "継続的なシステム監視を行っています。"
+                            },
+                            {
+                                label: "不正アクセス防止",
+                                description: "不正アクセスやデータ漏洩を防止する措置を講じています。"
+                            }
+                        ],
+                        note: "ユーザー様のデータとプライバシーを守るために、常に最新のセキュリティ対策を講じています。"
+                    }
+                },
+                {
+                    id: "faq",
+                    title: "よくある質問",
+                    content: {
+                        items: [
+                            {
+                                question: "この情報は投資助言ですか？",
+                                answer: "いいえ、当社は参考情報を提供するのみで、個別の投資助言は行いません。"
+                            },
+                            {
+                                question: "データはどのように収集されていますか？",
+                                answer: "公式の市場データ、取引所の公告、信頼できる第三者からの情報を収集しています。"
+                            },
+                            {
+                                question: "個人情報は安全ですか？",
+                                answer: "はい、最新のセキュリティ技術と厳格なデータ保護ポリシーにより、お客様の情報は安全に保護されています。"
+                            },
+                            {
+                                question: "AIの分析結果はどの程度信頼できますか？",
+                                answer: "AIの分析は参考情報として提供されており、投資判断を推奨するものではありません。常に複数の情報源を確認することをお勧めします。"
+                            }
+                        ],
+                        steps: [
+                            {
+                                number: "1️⃣",
+                                title: "データ収集",
+                                description: "市場の価格変動の度合いを示す指標"
+                            },
+                            {
+                                number: "2️⃣",
+                                title: "AI分析",
+                                description: "収集したデータをAIが分析"
+                            },
+                            {
+                                number: "3️⃣",
+                                title: "結果レビュー",
+                                description: "専門家がレビュー"
+                            }
+                        ],
+                        info: [
+                            {
+                                icon: "⚙️",
+                                label: "手順",
+                                value: "常に改善、信頼性向上"
+                            },
+                            {
+                                icon: "🛡️",
+                                label: "セキュリティ",
+                                value: "常に更新"
+                            },
+                            {
+                                icon: "📋",
+                                label: "コンプライアンス",
+                                value: "詳細はこちら"
+                            }
+                        ]
+                    }
+                }
+            ],
+            footer: {
+                text: "当サイトはお客様のプライバシーを重視しています。AIは技術指標、ニュースの感情、財務報告の要約をもとに情報を整理しています。当社のサービスは、ユーザー様により関連性の高い体験を提供するために、シグナルと背景データを活用しています。当社は最高レベルのセキュリティ基準を採用し、ユーザー様のデータを保護しています。",
+                copyright: "© Market Trends 1:1 イメージ"
+            }
+        };
+
+        // UIテキストラベル
+        window.__UI = {
+            toc: "目次",
+            close: "閉じる",
+            cookieTitle: "Cookieの使用について",
+            cookieDescription: "当サイトでは、ユーザー体験を向上させるためにCookieを使用しています。詳細については、プライバシーポリシーをご確認ください。",
+            accept: "受け入れる",
+            reject: "拒否する",
+            save: "設定を保存"
+        };
+
+        // テーマスタイル設定
+        window.__THEME = {
+            colors: {
+                primary: "#1f2a3f",
+                secondary: "#28344e",
+                accent: "#4f46e5",
+                success: "#10b981",
+                warning: "#f59e0b",
+                danger: "#ef4444",
+                info: "#3b82f6"
+            },
+            fonts: {
+                body: "'Inter', system-ui, -apple-system, sans-serif",
+                heading: "'Inter', system-ui, -apple-system, sans-serif"
+            },
+            spacing: {
+                container: "px-6 py-4",
+                section: "space-y-6"
+            }
+        };
+
+        // レイアウトとセクション順序
+        window.__LAYOUT = {
+            sections: [
+                "market-trends",
+                "signal-background",
+                "data-notes",
+                "privacy",
+                "ai-transparency",
+                "neutral-matrix",
+                "operation-info",
+                "glossary",
+                "security",
+                "faq"
+            ],
+            navigation: {
+                position: "top",
+                type: "pills"
+            },
+            toc: {
+                position: "right",
+                type: "drawer"
+            }
+        };
+    </script>
+
+    <!-- レンダリングスクリプト -->
+    <script>
+        // ページ初期化関数
+        function init() {
+            renderHero();
+            renderSections();
+            renderNavigation();
+            renderToc();
+            renderFooter();
+            initCookie();
+            initEventListeners();
+        }
+
+        // ヒーローセクションのレンダリング
+        function renderHero() {
+            const heroContainer = document.createElement('div');
+            heroContainer.className = 'px-6 pb-2 border-b border-gray-100';
+
+            const title = document.createElement('h1');
+            title.className = 'text-2xl font-semibold tracking-tight text-gray-800';
+            title.textContent = window.__COPY.hero_title;
+
+            const tagsContainer = document.createElement('div');
+            tagsContainer.className = 'flex flex-wrap items-center gap-2 mt-1';
+
+            window.__COPY.tags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'badge-neutral';
+                tagElement.textContent = tag;
+                tagsContainer.appendChild(tagElement);
+            });
+
+            const separator = document.createElement('div');
+            separator.className = 'separator-dash mt-4';
+
+            heroContainer.appendChild(title);
+            heroContainer.appendChild(tagsContainer);
+            heroContainer.appendChild(separator);
+
+            // コンプライアンスバナーのレンダリング
+            const complianceBanner = document.createElement('section');
+            complianceBanner.className = 'bg-amber-50/70 p-4 rounded-2xl border border-amber-100 mt-4';
+
+            const bannerTitle = document.createElement('h3');
+            bannerTitle.className = 'text-sm font-bold text-amber-800 flex items-center gap-1.5 mb-2';
+            bannerTitle.innerHTML = '<span>⚠️</span> ' + window.__COPY.compliance_banner.title;
+
+            const bannerItems = document.createElement('ul');
+            bannerItems.className = 'list-disc list-outside text-xs text-amber-800/90 space-y-1.5 pl-5';
+
+            window.__COPY.compliance_banner.items.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.textContent = item;
+                bannerItems.appendChild(listItem);
+            });
+
+            complianceBanner.appendChild(bannerTitle);
+            complianceBanner.appendChild(bannerItems);
+
+            heroContainer.appendChild(complianceBanner);
+
+            // ヒーローセクションを本文に追加
+            const bodyContainer = document.getElementById('__body');
+            bodyContainer.insertBefore(heroContainer, bodyContainer.firstChild);
+        }
+
+        // セクションのレンダリング
+        function renderSections() {
+            const bodyContainer = document.getElementById('__body');
+
+            window.__LAYOUT.sections.forEach(sectionId => {
+                const sectionData = window.__COPY.sections.find(section => section.id === sectionId);
+                if (!sectionData) return;
+
+                const section = document.createElement('section');
+                section.id = sectionId;
+                section.className = 'mt-6';
+
+                // セクションタイトル
+                const title = document.createElement('h2');
+                title.className = 'text-lg font-medium text-gray-800 mb-2 flex items-center gap-2';
+
+                // タグがある場合は追加
+                if (sectionData.tag) {
+                    const tag = document.createElement('span');
+                    tag.className = 'bg-gray-200 text-gray-700 text-[0.6rem] px-2 py-0.5 rounded-full';
+                    tag.textContent = sectionData.tag;
+                    title.appendChild(tag);
+                }
+
+                const titleText = document.createElement('span');
+                titleText.textContent = sectionData.title;
+                title.appendChild(titleText);
+
+                section.appendChild(title);
+
+                // セクションコンテンツのレンダリング
+                renderSectionContent(section, sectionData);
+
+                bodyContainer.appendChild(section);
+            });
+        }
+
+        // セクションコンテンツのレンダリング
+        function renderSectionContent(section, sectionData) {
+            const content = sectionData.content;
+
+            // 説明テキストがある場合
+            if (content.description) {
+                const description = document.createElement('p');
+                description.className = 'text-xs text-gray-600 mb-3';
+                description.textContent = content.description;
+                section.appendChild(description);
+            }
+
+            // アイテムリストがある場合
+            if (content.items) {
+                // 市場トレンド概要セクションの場合
+                if (sectionData.id === 'market-trends') {
+                    const grid = document.createElement('div');
+                    grid.className = 'grid grid-cols-2 gap-3';
+
+                    content.items.forEach(item => {
+                        const itemContainer = document.createElement('div');
+                        itemContainer.className = 'bg-gray-50/90 p-3 rounded-xl border border-gray-100/70';
+
+                        if (item.title) {
+                            const title = document.createElement('div');
+                            title.className = 'text-xs font-semibold text-gray-600';
+                            title.textContent = item.title;
+                            itemContainer.appendChild(title);
+
+                            if (item.list) {
+                                const list = document.createElement('ul');
+                                list.className = 'list-disc list-inside text-xs text-gray-700 mt-1 space-y-1';
+
+                                item.list.forEach(listItem => {
+                                    const li = document.createElement('li');
+                                    li.textContent = listItem;
+                                    list.appendChild(li);
+                                });
+
+                                itemContainer.appendChild(list);
+                            }
+                        } else if (item.text) {
+                            const text = document.createElement('p');
+                            text.className = 'text-xs text-gray-600';
+                            text.innerHTML = item.text;
+                            itemContainer.appendChild(text);
+                        }
+
+                        grid.appendChild(itemContainer);
+                    });
+
+                    section.appendChild(grid);
+                }
+                // データ注記セクションの場合
+                else if (sectionData.id === 'data-notes' || sectionData.id === 'glossary') {
+                    const grid = document.createElement('div');
+                    grid.className = 'grid grid-cols-1 gap-2 text-sm';
+
+                    content.items.forEach(item => {
+                        const itemContainer = document.createElement('div');
+                        itemContainer.className = 'flex items-center gap-2 bg-white/50 p-2 rounded-xl';
+
+                        const icon = document.createElement('span');
+                        icon.className = 'text-indigo-400';
+                        icon.textContent = item.icon;
+
+                        const label = document.createElement('span');
+                        label.className = 'font-semibold text-gray-700';
+                        label.textContent = item.label + ' — ';
+
+                        const description = document.createElement('span');
+                        description.className = 'text-gray-600';
+                        description.textContent = item.description;
+
+                        itemContainer.appendChild(icon);
+                        itemContainer.appendChild(label);
+                        itemContainer.appendChild(description);
+
+                        grid.appendChild(itemContainer);
+                    });
+
+                    section.appendChild(grid);
+                }
+                // プライバシー、運営情報、セキュリティセクションの場合
+                else if (sectionData.id === 'privacy' || sectionData.id === 'operation-info' || sectionData.id === 'security') {
+                    const list = document.createElement('ul');
+                    list.className = 'text-xs space-y-1 mt-2 pl-2 list-disc list-inside text-gray-700';
+
+                    content.items.forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<span class="font-semibold">${item.label}</span> — ${item.description}`;
+                        list.appendChild(listItem);
+                    });
+
+                    section.appendChild(list);
+                }
+                // AIの透明性セクションの場合
+                else if (sectionData.id === 'ai-transparency') {
+                    const list = document.createElement('ul');
+                    list.className = 'space-y-1.5 text-xs text-indigo-900/80';
+
+                    content.items.forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'flex items-start gap-2';
+
+                        const icon = document.createElement('span');
+                        icon.className = 'text-indigo-500';
+                        icon.textContent = item.icon;
+
+                        const text = document.createElement('span');
+                        text.textContent = item.text;
+
+                        listItem.appendChild(icon);
+                        listItem.appendChild(text);
+
+                        list.appendChild(listItem);
+                    });
+
+                    section.appendChild(list);
+                }
+                // よくある質問セクションの場合
+                else if (sectionData.id === 'faq') {
+                    const faqContainer = document.createElement('div');
+                    faqContainer.className = 'bg-neutral-50 p-3 rounded-xl';
+
+                    content.items.forEach(item => {
+                        const faqItem = document.createElement('div');
+                        faqItem.className = 'mt-1 text-xs';
+
+                        const question = document.createElement('div');
+                        question.innerHTML = `<span class="font-semibold">${item.question}</span> — ${item.answer}`;
+
+                        faqItem.appendChild(question);
+                        faqContainer.appendChild(faqItem);
+                    });
+
+                    section.appendChild(faqContainer);
+
+                    // 手順のレンダリング
+                    if (content.steps) {
+                        const stepsGrid = document.createElement('div');
+                        stepsGrid.className = 'grid grid-cols-3 gap-2 text-center mt-3';
+
+                        content.steps.forEach(step => {
+                            const stepContainer = document.createElement('div');
+                            stepContainer.className = 'bg-white p-2 rounded-lg shadow-sm border border-gray-100';
+
+                            const number = document.createElement('div');
+                            number.className = 'text-lg';
+                            number.textContent = step.number;
+
+                            const title = document.createElement('div');
+                            title.className = 'text-[0.6rem] font-bold';
+                            title.textContent = step.title;
+
+                            const description = document.createElement('span');
+                            description.className = 'text-[0.5rem] text-gray-400';
+                            description.textContent = step.description;
+
+                            stepContainer.appendChild(number);
+                            stepContainer.appendChild(title);
+                            stepContainer.appendChild(description);
+
+                            stepsGrid.appendChild(stepContainer);
+                        });
+
+                        section.appendChild(stepsGrid);
+                    }
+
+                    // 情報のレンダリング
+                    if (content.info) {
+                        const infoContainer = document.createElement('div');
+                        infoContainer.className = 'bg-gray-50 p-3 rounded-xl flex flex-wrap justify-between text-xs mt-3';
+
+                        content.info.forEach(info => {
+                            const infoItem = document.createElement('span');
+                            infoItem.className = 'flex items-center gap-1';
+                            infoItem.innerHTML = `<span class="text-indigo-400">${info.icon}</span> ${info.label}: ${info.value}`;
+
+                            infoContainer.appendChild(infoItem);
+                        });
+
+                        section.appendChild(infoContainer);
+                    }
+                }
+            }
+
+            // インジケーターがある場合
+            if (content.indicators) {
+                const indicatorsContainer = document.createElement('div');
+                indicatorsContainer.className = 'space-y-3';
+
+                content.indicators.forEach(indicator => {
+                    const indicatorItem = document.createElement('div');
+                    indicatorItem.className = 'flex items-center justify-between';
+
+                    const label = document.createElement('span');
+                    label.className = 'text-sm text-gray-700';
+                    label.textContent = indicator.label;
+
+                    const value = document.createElement('span');
+                    value.className = `${indicator.class} text-xs px-3 py-1 rounded-full`;
+                    value.textContent = indicator.value;
+
+                    indicatorItem.appendChild(label);
+                    indicatorItem.appendChild(value);
+
+                    indicatorsContainer.appendChild(indicatorItem);
+                });
+
+                section.appendChild(indicatorsContainer);
+            }
+
+            // タグがある場合
+            if (content.tags) {
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'bg-gray-100/50 p-3 rounded-xl flex flex-wrap gap-2 items-center';
+
+                content.tags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'matrix-tag';
+                    tagElement.textContent = `${tag.icon} ${tag.label}`;
+
+                    tagsContainer.appendChild(tagElement);
+                });
+
+                section.appendChild(tagsContainer);
+            }
+
+            // 注記がある場合
+            if (content.note) {
+                const note = document.createElement('p');
+                note.className = 'text-[0.65rem] text-gray-400 pt-1 border-t border-gray-100 mt-2';
+                note.textContent = content.note;
+
+                section.appendChild(note);
+            }
+        }
+
+        // ナビゲーションのレンダリング
+        function renderNavigation() {
+            const navContainer = document.getElementById('__pillNav');
+
+            window.__LAYOUT.sections.forEach(sectionId => {
+                const sectionData = window.__COPY.sections.find(section => section.id === sectionId);
+                if (!sectionData) return;
+
+                const navItem = document.createElement('a');
+                navItem.href = `#${sectionId}`;
+                navItem.className = 'inline-block px-3 py-1 text-sm text-gray-600 hover:text-indigo-600 transition-colors';
+                navItem.textContent = sectionData.title;
+
+                navItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+                });
+
+                navContainer.appendChild(navItem);
+            });
+
+            // スクロール時にナビゲーションを表示
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    navContainer.classList.remove('hidden');
+                } else {
+                    navContainer.classList.add('hidden');
+                }
+            });
+        }
+
+        // 目次のレンダリング
+        function renderToc() {
+            const tocContainer = document.getElementById('tocContent');
+
+            window.__LAYOUT.sections.forEach(sectionId => {
+                const sectionData = window.__COPY.sections.find(section => section.id === sectionId);
+                if (!sectionData) return;
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${sectionId}`;
+                tocItem.className = 'block py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors';
+                tocItem.textContent = sectionData.title;
+
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('__toc').classList.add('hidden');
+                });
+
+                tocContainer.appendChild(tocItem);
+            });
+        }
+
+        // フッターのレンダリング
+        function renderFooter() {
+            const bodyContainer = document.getElementById('__body');
+
+            const separator = document.createElement('div');
+            separator.className = 'separator-dash !mt-4';
+
+            const footerText = document.createElement('div');
+            footerText.className = 'text-[0.55rem] text-gray-400 text-center leading-relaxed pb-2';
+            footerText.innerHTML = window.__COPY.footer.text + '<br>' + window.__COPY.footer.copyright;
+
+            bodyContainer.appendChild(separator);
+            bodyContainer.appendChild(footerText);
+        }
+
+        // Cookie機能の初期化
+        function initCookie() {
+            // Cookieが既に受け入れられているか確認
+            if (!localStorage.getItem('cookieAccepted')) {
+                // Cookieポップアップを表示
+                setTimeout(() => {
+                    document.getElementById('__cookie').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        // イベントリスナーの初期化
+        function initEventListeners() {
+            // Cookie受け入れボタン
+            document.getElementById('acceptCookie').addEventListener('click', () => {
+                localStorage.setItem('cookieAccepted', 'true');
+                document.getElementById('__cookie').classList.add('hidden');
+            });
+
+            // Cookie拒否ボタン
+            document.getElementById('rejectCookie').addEventListener('click', () => {
+                localStorage.setItem('cookieAccepted', 'false');
+                document.getElementById('__cookie').classList.add('hidden');
+            });
+
+            // 目次を開くボタン
+            const tocButton = document.createElement('button');
+            tocButton.className = 'fixed top-4 right-4 z-50 bg-white p-2 rounded-full shadow-md';
+            tocButton.innerHTML = '<svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>';
+
+            tocButton.addEventListener('click', () => {
+                document.getElementById('__toc').classList.remove('hidden');
+            });
+
+            document.body.appendChild(tocButton);
+
+            // 目次を閉じるボタン
+            document.getElementById('closeToc').addEventListener('click', () => {
+                document.getElementById('__toc').classList.add('hidden');
+            });
+
+            // 目次の背景をクリックして閉じる
+            document.getElementById('__toc').addEventListener('click', (e) => {
+                if (e.target.id === '__toc') {
+                    document.getElementById('__toc').classList.add('hidden');
+                }
+            });
+
+            // CTAボタンのクリックイベント
+            function handleCtaClick(event) {
+                event.preventDefault();
+                // /contact ページにリダイレクト
+                window.location.href = '/contact';
+            }
+
+            document.getElementById('mainCta').addEventListener('click', handleCtaClick);
+        }
+
+        // ページ読み込み時に初期化関数を実行
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

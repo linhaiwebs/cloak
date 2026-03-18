@@ -1,0 +1,53 @@
+services:
+  # 后端 PHP-FPM 服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/var/www/html/backend:cached
+      - backend_vendor:/var/www/html/backend/vendor
+      - backend_logs:/var/www/html/backend/logs
+    environment:
+      - APP_ENV=development
+      - APP_DEBUG=true
+    restart: unless-stopped
+    networks:
+      - app-network
+    working_dir: /var/www/html/backend
+    command: sh -c "mkdir -p /var/www/html/backend/data && chown -R www-data:www-data /var/www/html/backend/data && php-fpm"
+
+  # 前端 PHP-FPM 服务
+  frontend:
+    image: php:8.1-fpm
+    volumes:
+      - ./frontend:/var/www/html/frontend:cached
+    restart: unless-stopped
+    networks:
+      - app-network
+    working_dir: /var/www/html/frontend
+
+  # Nginx 反向代理和静态文件服务器
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "9600:80"
+      - "9601:8000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend:/var/www/html/frontend:cached
+      - ./backend:/var/www/html/backend:cached
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend_vendor:
+  backend_logs:

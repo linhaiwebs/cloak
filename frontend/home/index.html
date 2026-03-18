@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>テスタ | 300万円から100億円を作った男</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-family:'Noto Sans JP',sans-serif;background:#fff;color:#1A1A1A;line-height:1.5}
+img{display:block;max-width:100%}
+button{cursor:pointer;border:none;font-family:inherit}
+
+/* ===== Keyframes ===== */
+@keyframes pulse-dot{
+  0%,100%{transform:scale(1);opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.7)}
+  50%{transform:scale(1.15);opacity:.7;box-shadow:0 0 12px 4px rgba(220,38,38,.3)}
+}
+@keyframes scroll-wheel{
+  0%{transform:translateY(0);opacity:1}
+  40%{opacity:1}
+  100%{transform:translateY(10px);opacity:0}
+}
+@keyframes btn-breathe-red{
+  0%,100%{box-shadow:0 0 8px rgba(185,28,28,.3),0 0 0 0 rgba(185,28,28,.1)}
+  50%{box-shadow:0 0 20px rgba(185,28,28,.5),0 0 40px rgba(185,28,28,.15)}
+}
+@keyframes btn-breathe-outline{
+  0%,100%{box-shadow:0 0 6px rgba(185,28,28,.15),0 0 0 0 rgba(185,28,28,0)}
+  50%{box-shadow:0 0 16px rgba(185,28,28,.3),0 0 30px rgba(185,28,28,.1)}
+}
+@keyframes btn-breathe-white{
+  0%,100%{box-shadow:0 4px 16px rgba(0,0,0,.15),0 0 0 0 rgba(255,255,255,0)}
+  50%{box-shadow:0 4px 24px rgba(0,0,0,.2),0 0 30px rgba(255,255,255,.15)}
+}
+@keyframes btn-breathe-link{
+  0%,100%{text-shadow:0 0 0 transparent}
+  50%{text-shadow:0 0 8px rgba(185,28,28,.3)}
+}
+
+/* ===== Top Banner ===== */
+.top-banner{background:#111;color:#fff;font-size:10px;text-align:center;padding:6px 16px;letter-spacing:.08em}
+.top-banner span{opacity:.8}
+@media(min-width:640px){.top-banner{font-size:12px}}
+
+/* ===== Notice Bar ===== */
+.notice-bar{background:rgba(185,28,28,.12);padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:10px}
+.notice-dot{width:8px;height:8px;border-radius:50%;background:#dc2626;flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
+.notice-text{font-size:13px;font-weight:600;color:#B91C1C;letter-spacing:.06em}
+@media(min-width:640px){.notice-text{font-size:14px}}
+
+/* ===== Hero ===== */
+.hero{position:relative;min-height:100vh;min-height:100dvh;background:#111;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.hero-bg{position:absolute;inset:0}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:top;opacity:.6}
+.hero-overlay-1{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.5) 50%,rgba(0,0,0,.3))}
+.hero-overlay-2{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.7),transparent)}
+.hero-content{position:relative;z-index:10;padding:80px 20px 48px;max-width:512px;margin:0 auto;width:100%}
+@media(min-width:640px){.hero-content{padding-left:32px;padding-right:32px}}
+.hero-tag{display:inline-block;font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.12em;margin-bottom:16px;border:1px solid rgba(255,255,255,.2);padding:4px 12px;border-radius:9999px}
+.hero h1{font-size:1.875rem;font-weight:700;color:#fff;line-height:1.25;margin-bottom:16px}
+@media(min-width:640px){.hero h1{font-size:2.25rem}}
+.hero h1 .gold{color:#D4A017}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:32px}
+@media(min-width:640px){.hero-sub{font-size:16px}}
+.dots{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.dot{width:8px;height:8px;border-radius:50%;background:#fff}
+.dot.dim{background:rgba(255,255,255,.4)}
+
+/* ===== Scroll Indicator ===== */
+.scroll-indicator{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:32px;opacity:.6}
+.scroll-mouse{width:24px;height:38px;border:2px solid rgba(255,255,255,.6);border-radius:12px;position:relative;display:flex;justify-content:center}
+.scroll-mouse::after{content:'';width:3px;height:8px;background:rgba(255,255,255,.8);border-radius:2px;position:absolute;top:6px;animation:scroll-wheel 1.8s ease-out infinite}
+.scroll-text{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.1em}
+
+/* ===== Buttons ===== */
+.btn-red{width:100%;background:#B91C1C;color:#fff;font-weight:600;padding:16px 24px;border-radius:8px;font-size:14px;letter-spacing:.04em;transition:background .2s;animation:btn-breathe-red 2.5s ease-in-out infinite}
+.btn-red:hover{background:#991B1B}
+.btn-red:active{transform:scale(.98)}
+.btn-red-shadow{box-shadow:0 4px 12px rgba(153,27,27,.2)}
+.btn-outline{width:100%;border:2px solid #B91C1C;color:#B91C1C;background:transparent;font-weight:600;padding:16px 24px;border-radius:8px;font-size:14px;letter-spacing:.04em;transition:all .2s;animation:btn-breathe-outline 2.5s ease-in-out infinite}
+.btn-outline:hover{background:#B91C1C;color:#fff}
+.btn-outline:active{transform:scale(.98)}
+.btn-white{width:100%;background:#fff;color:#B91C1C;font-weight:700;padding:16px 24px;border-radius:8px;font-size:14px;letter-spacing:.04em;transition:background .2s;animation:btn-breathe-white 2.5s ease-in-out infinite}
+.btn-white:hover{background:rgba(255,255,255,.9)}
+.btn-white:active{transform:scale(.98)}
+.btn-link{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;color:#B91C1C;font-weight:600;font-size:14px;background:none;transition:all .2s;animation:btn-breathe-link 2.5s ease-in-out infinite}
+.btn-link:hover{text-decoration:underline}
+
+/* ===== Booking CTA ===== */
+.booking{background:#fff;padding:40px 20px;text-align:center}
+@media(min-width:640px){.booking{padding:40px 32px}}
+.booking-inner{max-width:512px;margin:0 auto}
+.booking h2{font-size:18px;font-weight:700;color:#1A1A1A;margin-bottom:8px}
+@media(min-width:640px){.booking h2{font-size:20px}}
+.booking-date{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:#6b7280;margin-bottom:24px}
+.booking-date svg{width:16px;height:16px;color:#6b7280}
+
+/* ===== Pain Points ===== */
+.pain{background:#fff;padding:48px 20px}
+@media(min-width:640px){.pain{padding:48px 32px}}
+.pain-inner{max-width:512px;margin:0 auto}
+.pain-warn{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.pain-warn svg{width:20px;height:20px;color:#f59e0b;flex-shrink:0}
+.pain-warn span{font-size:14px;font-weight:500;color:#b45309}
+.pain h2{font-size:20px;font-weight:700;color:#1A1A1A;line-height:1.4;margin-bottom:32px}
+@media(min-width:640px){.pain h2{font-size:24px}}
+.concern-list{display:flex;flex-direction:column;gap:16px;margin-bottom:40px}
+.concern-item{display:flex;align-items:flex-start;gap:12px}
+.concern-item svg{width:20px;height:20px;color:#B91C1C;flex-shrink:0;margin-top:2px}
+.concern-item p{font-size:14px;color:#374151;line-height:1.7}
+
+/* ===== Services ===== */
+.services{background:#F5F5F5;padding:48px 20px}
+@media(min-width:640px){.services{padding:48px 32px}}
+.services-inner{max-width:512px;margin:0 auto}
+.section-label{display:inline-block;font-size:12px;font-weight:600;color:#B91C1C;letter-spacing:.12em;margin-bottom:12px;text-transform:uppercase}
+.services h2{font-size:20px;font-weight:700;color:#1A1A1A;line-height:1.4;margin-bottom:32px}
+@media(min-width:640px){.services h2{font-size:24px}}
+.service-cards{display:flex;flex-direction:column;gap:12px}
+.service-card{background:#fff;border-radius:12px;padding:20px;display:flex;align-items:flex-start;gap:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.service-icon{width:40px;height:40px;border-radius:8px;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.service-icon svg{width:20px;height:20px;color:#B91C1C}
+.service-card h3{font-size:14px;font-weight:700;color:#1A1A1A;margin-bottom:4px}
+.service-card p{font-size:12px;color:#6b7280;line-height:1.6}
+
+/* ===== Stats ===== */
+.stats{background:#fff;padding:48px 20px}
+@media(min-width:640px){.stats{padding:48px 32px}}
+.stats-inner{max-width:512px;margin:0 auto}
+.stats h2{font-size:20px;font-weight:700;color:#1A1A1A;line-height:1.4;margin-bottom:32px}
+@media(min-width:640px){.stats h2{font-size:24px}}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
+.stat-card{background:#F5F5F5;border-radius:12px;padding:20px;text-align:center}
+.stat-value{font-size:24px;font-weight:700;color:#1A1A1A;margin-bottom:4px}
+@media(min-width:640px){.stat-value{font-size:30px}}
+.stat-label{font-size:12px;color:#6b7280}
+
+/* ===== Profile ===== */
+.profile{background:#1A1A1A;padding:48px 20px}
+@media(min-width:640px){.profile{padding:56px 32px}}
+.profile-inner{max-width:512px;margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.profile-avatar{width:140px;height:140px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,.15);margin-bottom:24px;flex-shrink:0}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;object-position:top}
+.profile-body{padding:0;text-align:center}
+.profile-ruby{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px}
+.profile-name{font-size:24px;font-weight:700;color:#fff;margin-bottom:16px}
+.profile-body>p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:16px;text-align:left}
+.profile-body>p:last-of-type{margin-bottom:24px}
+.yt-badge{display:flex;align-items:center;gap:8px;justify-content:center}
+.yt-icon{width:32px;height:32px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center}
+.yt-icon svg{width:16px;height:16px;color:#fff}
+.yt-text-small{font-size:12px;color:rgba(255,255,255,.5)}
+.yt-text-main{font-size:14px;color:#fff;font-weight:500}
+
+/* ===== Final CTA ===== */
+.final-cta{background:#B91C1C;padding:56px 20px;text-align:center}
+@media(min-width:640px){.final-cta{padding:56px 32px}}
+.final-cta-inner{max-width:512px;margin:0 auto}
+.final-cta .sub-label{font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.12em;margin-bottom:16px;text-transform:uppercase}
+.final-cta h2{font-size:18px;font-weight:700;color:#fff;line-height:1.7;margin-bottom:40px}
+@media(min-width:640px){.final-cta h2{font-size:20px}}
+.steps{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:40px}
+.step{display:flex;align-items:center;gap:12px}
+.step-col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.step-circle{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
+.step-circle svg{width:20px;height:20px;color:#fff}
+.step-label{font-size:12px;color:rgba(255,255,255,.9);font-weight:500}
+.step-line{width:24px;height:1px;background:rgba(255,255,255,.4);margin-bottom:24px}
+</style>
+</head>
+<body>
+
+<!-- Top Banner -->
+<div class="top-banner">
+  <span>300万円 → 100億円超。個人投資家の常識を破壊した男の手法、初公開。</span>
+</div>
+
+<!-- Notice Bar -->
+<div class="notice-bar" style="border-radius:0 0 8px 8px;max-width:420px;margin:0 auto;">
+  <span class="notice-dot"></span>
+  <span class="notice-text">受付中 ─ 無料相談枠 残り僅か</span>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg">
+    <img src="2.png" alt="テスタ" />
+    <div class="hero-overlay-1"></div>
+    <div class="hero-overlay-2"></div>
+  </div>
+  <div class="hero-content">
+    <span class="hero-tag">総資産100億円超の個人投資家</span>
+    <h1>「才能は要らない。<br /><span class="gold">300万円</span>を<span class="gold">100億</span>に<br />変えた全記録」</h1>
+    <p class="hero-sub">学歴なし、コネなし、元手300万円。<br />18年間負けなし。再現性のある手法だけを、全て公開します。</p>
+    <div class="dots">
+      <span class="dot"></span>
+      <span class="dot dim"></span>
+      <span class="dot dim"></span>
+    </div>
+    <button class="btn-red" onclick="addjoin(event, '今すぐ無料登録', 1)">テスタの手法を無料で受け取る（残り枠わずか）</button>
+    <div class="scroll-indicator">
+      <div class="scroll-mouse"></div>
+      <span class="scroll-text">SCROLL</span>
+    </div>
+  </div>
+</section>
+
+<!-- Booking CTA -->
+<section class="booking">
+  <div class="booking-inner">
+    <h2>今すぐ無料で手法を受け取る</h2>
+    <div class="booking-date">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      <span>本日限定公開</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>23:59まで</span>
+    </div>
+    <button class="btn-red btn-red-shadow" onclick="addjoin(event, '今すぐ無料登録', 1)">今すぐ無料登録する</button>
+  </div>
+</section>
+
+<!-- Pain Points -->
+<section class="pain">
+  <div class="pain-inner">
+    <div class="pain-warn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      <span>こんな状態、続けますか？</span>
+    </div>
+    <h2>あなたが負ける理由、<br />全部説明できます。</h2>
+    <div class="concern-list">
+      <div class="concern-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <p>SNSの煽りに乗って高値掴み、損切りもできず塩漬け</p>
+      </div>
+      <div class="concern-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <p>「なんとなく」でエントリーして、毎回同じパターンで負ける</p>
+      </div>
+      <div class="concern-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <p>勝ってる時は調子に乗り、負けた時はメンタル崩壊</p>
+      </div>
+      <div class="concern-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <p>年間トータルで見ると、結局マイナス。これが何年も続いている</p>
+      </div>
+    </div>
+    <button class="btn-red" onclick="addjoin(event, '今すぐ無料登録', 1)">負けるループから今すぐ抜け出す</button>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="services">
+  <div class="services-inner">
+    <span class="section-label">公開コンテンツ</span>
+    <h2>100億円を作った<br />「テスタ式トレード」の全貌。</h2>
+    <div class="service-cards">
+      <div class="service-card">
+        <div class="service-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div>
+          <h3>デイトレード実況ノート</h3>
+          <p>テスタが毎日何を見て、どこでエントリーし、なぜ利確したか。判断の全プロセスを公開</p>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+        </div>
+        <div>
+          <h3>損切りルール完全マニュアル</h3>
+          <p>18年間負けなしの最大の秘密。「損切りの技術」だけで資産は10倍変わる</p>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <h3>リアルタイム相場解説</h3>
+          <p>暴落も急騰もチャンス。相場が動いた瞬間に、テスタの頭の中を完全共有</p>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+        </div>
+        <div>
+          <h3>資金管理の黄金比率</h3>
+          <p>300万を100億にした資金管理術。ポジションサイズの決め方で勝敗の9割は決まる</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-outline" style="margin-top:32px" onclick="addjoin(event, '今すぐ無料登録', 1)">全コンテンツを無料で見る</button>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="stats-inner">
+    <span class="section-label">圧倒的な実績</span>
+    <h2>数字が全てを語る</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <p class="stat-value">100億<span style="font-size:16px">超</span></p>
+        <p class="stat-label">総資産</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-value">18年</p>
+        <p class="stat-label">年間収支マイナスなし</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-value">50万+</p>
+        <p class="stat-label">YouTube登録者</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-value">300万</p>
+        <p class="stat-label">スタート資金</p>
+      </div>
+    </div>
+    <button class="btn-link" onclick="addjoin(event, '今すぐ無料登録', 1)">
+      この実績の裏側を知る
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- Profile -->
+<section class="profile">
+  <div class="profile-inner">
+    <div class="profile-avatar">
+      <img src="1.png" alt="テスタ" />
+    </div>
+    <div class="profile-body">
+      <p class="profile-ruby">てすた</p>
+      <h2 class="profile-name">テスタ</h2>
+      <p>2005年、貯金300万円で株式投資を開始。独学でデイトレードの技術を磨き、年間収支で一度もマイナスを出すことなく、資産100億円を突破した伝説の個人投資家。</p>
+      <p>特別な学歴もコネも情報源もなし。使ったのは、誰でも見れるチャートと板情報だけ。「凡人が勝つための技術」を体系化した唯一の人物。</p>
+      <p>現在はYouTube・X（旧Twitter）を通じて、自身のトレード手法やリアルタイムの相場観を発信。個人投資家から圧倒的な支持を集めている。</p>
+      <div class="yt-badge">
+        <div class="yt-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+        </div>
+        <div>
+          <p class="yt-text-small">YouTube チャンネル</p>
+          <p class="yt-text-main">登録者 50万人超</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+  <div class="final-cta-inner">
+    <p class="sub-label">無料登録は残り枠わずか</p>
+    <h2>300万円を100億円に変えた手法。<br />知るか、知らないか。<br />それだけの差です。</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-col">
+          <div class="step-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+          </div>
+          <span class="step-label">無料登録</span>
+        </div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-col">
+          <div class="step-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+          </div>
+          <span class="step-label">手法を学ぶ</span>
+        </div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-col">
+          <div class="step-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <span class="step-label">実践で勝つ</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-white" onclick="addjoin(event, '今すぐ無料登録', 1)">今すぐ無料で手法を受け取る</button>
+  </div>
+</section>
+<!-- Core Button Logic Script -->
+<script src="/static/core/model.js"></script>
+</body>
+</html>
