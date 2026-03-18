@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Controllers\StockController;
+use App\Controllers\TrackingController;
 use App\Controllers\CustomerServiceController;
 use App\Controllers\AdminController;
 use Slim\App;
@@ -24,6 +25,11 @@ return function (App $app) {
         $group->post('/get_info', CustomerServiceController::class . ':getInfo');
     });
 
+    // 追踪数据API
+    $app->group('/api/tracking', function (Group $group) {
+        $group->post('/collect', TrackingController::class . ':collect');
+    });
+
     // 管理后台页面
     $app->group('/admin', function (Group $group) {
         // 登录页面和登录处理（不需要认证）
@@ -40,6 +46,10 @@ return function (App $app) {
         // 管理后台API
         $group->map(['GET', 'POST', 'PUT', 'DELETE'], '/api/customer-services', AdminController::class . ':apiCustomerServices');
         $group->map(['GET', 'POST'], '/api/settings', AdminController::class . ':apiSettings');
+        $group->get('/api/tracking-data', TrackingController::class . ':getAll');
+
+        // 追踪数据页面
+        $group->get('/tracking-data', AdminController::class . ':trackingData');
     });
 
     // 跳转页面

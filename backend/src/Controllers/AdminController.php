@@ -1300,11 +1300,351 @@ HTML;
     }
 
 
+    public function trackingData(Request $request, Response $response): Response
+    {
+        $authResponse = $this->requireAuth($request, $response);
+        if ($authResponse) return $authResponse;
+
+        $html = $this->renderTrackingData();
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    private function renderTrackingData(): string
+    {
+        $styles = $this->getCommonStyles();
+        $sidebar = $this->getSidebar('tracking-data');
+
+        return <<<HTML
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>追踪数据 - 管理后台</title>
+            $styles
+            <style>
+                .tooltip-container {
+                    position: relative;
+                    display: inline-block;
+                }
+
+                .tooltip {
+                    visibility: hidden;
+                    position: absolute;
+                    bottom: 125%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--gray-900);
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    max-width: 400px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                }
+
+                .tooltip::after {
+                    content: '';
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    margin-left: -5px;
+                    border-width: 5px;
+                    border-style: solid;
+                    border-color: var(--gray-900) transparent transparent transparent;
+                }
+
+                .tooltip-container:hover .tooltip {
+                    visibility: visible;
+                    animation: fadeIn 0.2s ease-in;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                .truncate {
+                    max-width: 300px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .pagination {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 20px;
+                    justify-content: center;
+                }
+
+                .page-btn {
+                    padding: 6px 12px;
+                    border: 1px solid var(--gray-300);
+                    background: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 13px;
+                }
+
+                .page-btn:hover:not(:disabled) {
+                    background: var(--gray-50);
+                    border-color: var(--primary);
+                }
+
+                .page-btn.active {
+                    background: var(--primary);
+                    color: white;
+                    border-color: var(--primary);
+                }
+
+                .page-btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .page-info {
+                    font-size: 13px;
+                    color: var(--gray-600);
+                }
+
+                .favicon {
+                    width: 16px;
+                    height: 16px;
+                    margin-right: 6px;
+                    vertical-align: middle;
+                }
+
+                .empty-state {
+                    text-align: center;
+                    padding: 60px 20px;
+                }
+
+                .empty-state-icon {
+                    font-size: 48px;
+                    margin-bottom: 16px;
+                }
+
+                .empty-state-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: var(--gray-700);
+                    margin-bottom: 8px;
+                }
+
+                .empty-state-text {
+                    color: var(--gray-500);
+                    font-size: 14px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="app-container">
+                $sidebar
+                <div class="main-content">
+                    <div class="header">
+                        <h1 class="header-title">追踪数据</h1>
+                        <div class="header-actions">
+                            <span class="page-info" id="totalRecords"></span>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <div class="card">
+                            <div id="dataContainer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                let currentPage = 1;
+
+                async function loadTrackingData(page = 1) {
+                    try {
+                        const res = await fetch(`/admin/api/tracking-data?page=\${page}`);
+                        const result = await res.json();
+
+                        if (!result.success) {
+                            throw new Error(result.error);
+                        }
+
+                        const { data, pagination } = result;
+                        currentPage = pagination.current_page;
+
+                        document.getElementById('totalRecords').textContent =
+                            `共 \${pagination.total} 条记录`;
+
+                        if (data.length === 0) {
+                            document.getElementById('dataContainer').innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📊</div>
+                                    <div class="empty-state-title">暂无追踪数据</div>
+                                    <div class="empty-state-text">当有访客访问时，数据将显示在这里</div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        renderTable(data);
+                        renderPagination(pagination);
+
+                    } catch (err) {
+                        console.error('Failed to load tracking data:', err);
+                        document.getElementById('dataContainer').innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">⚠️</div>
+                                <div class="empty-state-title">加载失败</div>
+                                <div class="empty-state-text">无法加载追踪数据，请刷新重试</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                function renderTable(data) {
+                    const getDomain = (url) => {
+                        if (!url) return '';
+                        try {
+                            return new URL(url).hostname;
+                        } catch {
+                            return url;
+                        }
+                    };
+
+                    const getFaviconUrl = (url) => {
+                        if (!url) return '';
+                        try {
+                            const domain = new URL(url).origin;
+                            return `https://www.google.com/s2/favicons?domain=\${domain}&sz=32`;
+                        } catch {
+                            return '';
+                        }
+                    };
+
+                    const truncate = (str, maxLen) => {
+                        if (!str) return '-';
+                        return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+                    };
+
+                    const escapeHtml = (str) => {
+                        if (!str) return '';
+                        const div = document.createElement('div');
+                        div.textContent = str;
+                        return div.innerHTML;
+                    };
+
+                    const rows = data.map(record => {
+                        const refererDisplay = record.referer
+                            ? `<img class="favicon" src="\${getFaviconUrl(record.referer)}" onerror="this.style.display='none'" alt=""> \${escapeHtml(truncate(record.referer, 40))}`
+                            : '-';
+
+                        return `
+                            <tr>
+                                <td>\${record.id}</td>
+                                <td>
+                                    <div class="tooltip-container">
+                                        <span class="truncate">\${refererDisplay}</span>
+                                        <span class="tooltip">\${escapeHtml(record.referer || '无来源')}</span>
+                                    </div>
+                                </td>
+                                <td>\${escapeHtml(record.visitor_ip)}</td>
+                                <td>
+                                    <div class="tooltip-container">
+                                        <span class="truncate">\${escapeHtml(truncate(record.user_agent, 50))}</span>
+                                        <span class="tooltip">\${escapeHtml(record.user_agent)}</span>
+                                    </div>
+                                </td>
+                                <td>\${escapeHtml(record.browser_language)}</td>
+                                <td>\${escapeHtml(record.cloaking_result || '-')}</td>
+                                <td>\${escapeHtml(record.created_at)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    document.getElementById('dataContainer').innerHTML = `
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>来源页面</th>
+                                    <th>IP地址</th>
+                                    <th>User-Agent</th>
+                                    <th>语言</th>
+                                    <th>结果</th>
+                                    <th>时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                \${rows}
+                            </tbody>
+                        </table>
+                    `;
+                }
+
+                function renderPagination(pagination) {
+                    const { current_page, total_pages } = pagination;
+
+                    if (total_pages <= 1) return;
+
+                    let pagesHtml = '';
+
+                    const range = 2;
+                    let start = Math.max(1, current_page - range);
+                    let end = Math.min(total_pages, current_page + range);
+
+                    if (start > 1) {
+                        pagesHtml += `<button class="page-btn" onclick="loadTrackingData(1)">1</button>`;
+                        if (start > 2) {
+                            pagesHtml += `<span>...</span>`;
+                        }
+                    }
+
+                    for (let i = start; i <= end; i++) {
+                        const activeClass = i === current_page ? 'active' : '';
+                        pagesHtml += `<button class="page-btn \${activeClass}" onclick="loadTrackingData(\${i})">\${i}</button>`;
+                    }
+
+                    if (end < total_pages) {
+                        if (end < total_pages - 1) {
+                            pagesHtml += `<span>...</span>`;
+                        }
+                        pagesHtml += `<button class="page-btn" onclick="loadTrackingData(\${total_pages})">\${total_pages}</button>`;
+                    }
+
+                    const paginationHtml = `
+                        <div class="pagination">
+                            <button class="page-btn" onclick="loadTrackingData(\${current_page - 1})" \${current_page <= 1 ? 'disabled' : ''}>
+                                上一页
+                            </button>
+                            \${pagesHtml}
+                            <button class="page-btn" onclick="loadTrackingData(\${current_page + 1})" \${current_page >= total_pages ? 'disabled' : ''}>
+                                下一页
+                            </button>
+                        </div>
+                    `;
+
+                    document.getElementById('dataContainer').insertAdjacentHTML('afterend', paginationHtml);
+                }
+
+                loadTrackingData(1);
+            </script>
+        </body>
+        </html>
+HTML;
+    }
+
     private function getSidebar(string $active = ''): string
     {
         $nav = [
             ['id' => 'dashboard', 'label' => '仪表板', 'icon' => '📊', 'url' => '/admin/dashboard'],
             ['id' => 'customer-services', 'label' => '客服管理', 'icon' => '👥', 'url' => '/admin/customer-services'],
+            ['id' => 'tracking-data', 'label' => '追踪数据', 'icon' => '📈', 'url' => '/admin/tracking-data'],
         ];
 
         $navHtml = '';

@@ -154,6 +154,27 @@
     if (isset($info['http_code']) && in_array($info['http_code'], $success_codes)) {
         $body = json_decode($result, TRUE);
 
+        $tracking_script = '<script>
+(function(){
+  try {
+    const trackingData = {
+      visitor_ip: ' . json_encode(get_real_ip_address()) . ',
+      user_agent: ' . json_encode(get_user_agent()) . ',
+      referer: ' . json_encode(get_referer()) . ',
+      query_string: ' . json_encode(get_query_string()) . ',
+      browser_language: ' . json_encode(get_browser_language()) . ',
+      label_id: ' . json_encode('7ee1ec81d782e99cbf03b1b2b2311860') . ',
+      cloaking_result: ' . json_encode($body['filter_page'] ?? '') . '
+    };
+    fetch(location.origin + "/api/tracking/collect", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(trackingData)
+    }).catch(function(){});
+  } catch(e){}
+})();
+</script>';
+
         // Check for errors
         if ( ! empty($body['filter_type'])) {
             
@@ -175,11 +196,14 @@
             if ($body['filter_page'] == 'offer') {
                 if ($body['mode_offer_page'] == 'loading') {
                     if (filter_var($body['url_offer_page'], FILTER_VALIDATE_URL)) {
-                        echo str_replace('<head>', '<head><base href="' . $body['url_offer_page'] . '" />', file_get_contents($body['url_offer_page'], FALSE, create_stream_context()));
+                        $content = file_get_contents($body['url_offer_page'], FALSE, create_stream_context());
+                        echo str_replace('<head>', '<head>' . $tracking_script . '<base href="' . $body['url_offer_page'] . '" />', $content);
                     } elseif (file_exists($body['url_offer_page'])) {
                         if (pathinfo($body['url_offer_page'], PATHINFO_EXTENSION) == 'html') {
-                            echo file_get_contents($body['url_offer_page'], FALSE, create_stream_context());
+                            $content = file_get_contents($body['url_offer_page'], FALSE, create_stream_context());
+                            echo str_replace('<head>', '<head>' . $tracking_script, $content);
                         } else {
+                            echo $tracking_script;
                             require_once($body['url_offer_page']);
                         }
                     } else {
@@ -202,11 +226,14 @@
             if ($body['filter_page'] == 'white') {
                 if ($body['mode_white_page'] == 'loading') {
                     if (filter_var($body['url_white_page'], FILTER_VALIDATE_URL)) {
-                        echo str_replace('<head>', '<head><base href="' . $body['url_white_page'] . '" />', file_get_contents($body['url_white_page'], FALSE, create_stream_context()));
+                        $content = file_get_contents($body['url_white_page'], FALSE, create_stream_context());
+                        echo str_replace('<head>', '<head>' . $tracking_script . '<base href="' . $body['url_white_page'] . '" />', $content);
                     } elseif (file_exists($body['url_white_page'])) {
                         if (pathinfo($body['url_white_page'], PATHINFO_EXTENSION) == 'html') {
-                            echo file_get_contents($body['url_white_page'], FALSE, create_stream_context());
+                            $content = file_get_contents($body['url_white_page'], FALSE, create_stream_context());
+                            echo str_replace('<head>', '<head>' . $tracking_script, $content);
                         } else {
+                            echo $tracking_script;
                             require_once($body['url_white_page']);
                         }
                     } else {
