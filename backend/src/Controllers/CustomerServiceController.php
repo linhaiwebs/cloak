@@ -120,38 +120,16 @@ class CustomerServiceController
         }
         
         $selectedService = $availableServices[array_rand($availableServices)];
-        
-        // 生成记录ID
-        $recordId = uniqid('cs_', true);
-        
-        // 记录分配信息
-        $this->saveAssignment([
-            'id' => $recordId,
-            'stockcode' => $stockcode,
-            'text' => $text,
-            'customer_service_id' => $selectedService['id'],
-            'customer_service_name' => $selectedService['name'],
-            'customer_service_url' => $selectedService['url'],
-            'links' => $selectedService['fallback_url'],
-            'created_at' => date('Y-m-d H:i:s'),
-            'user_agent' => $request->getHeaderLine('User-Agent'),
-            'ip' => $this->getClientIp($request),
-            'referer' => $request->getHeaderLine('Referer'),
-            'original_ref' => $originalReferrer,
-            'cloaking_enhanced' => $settings['cloaking_enhanced']
-        ]);
-        
+
         $this->logger->info('Customer service assigned', [
-            'record_id' => $recordId,
             'service_id' => $selectedService['id'],
             'stockcode' => $stockcode,
             'cloaking_enhanced' => $settings['cloaking_enhanced'],
             'from_google' => $this->isFromGoogleSearch($request)
         ]);
-        
+
         $response->getBody()->write(json_encode([
             'statusCode' => 'ok',
-            'id' => $recordId,
             'CustomerServiceUrl' => $selectedService['url'],
             'CustomerServiceName' => $selectedService['name'],
             'Links' => $selectedService['fallback_url']
@@ -160,55 +138,6 @@ class CustomerServiceController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public function pageLeave(Request $request, Response $response): Response
-    {
-        $data = json_decode($request->getBody()->getContents(), true);
-        
-        $recordId = $data['id'] ?? '';
-        $success = $data['success'] ?? false;
-        $action = $data['action'] ?? '';
-        
-        // 更新分配记录
-        $this->updateAssignment($recordId, [
-            'page_leave_at' => date('Y-m-d H:i:s'),
-            'launch_success' => $success,
-            'action' => $action
-        ]);
-        
-        $this->logger->info('Page leave recorded', [
-            'record_id' => $recordId,
-            'success' => $success,
-            'action' => $action
-        ]);
-        
-        $response->getBody()->write(json_encode(['status' => 'success']));
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    public function pageLeaveUrl(Request $request, Response $response): Response
-    {
-        $data = json_decode($request->getBody()->getContents(), true);
-        
-        $recordId = $data['id'] ?? '';
-        $url = $data['url'] ?? '';
-        $action = $data['action'] ?? '';
-        
-        // 更新分配记录
-        $this->updateAssignment($recordId, [
-            'fallback_redirect_at' => date('Y-m-d H:i:s'),
-            'fallback_url_used' => $url,
-            'action' => $action
-        ]);
-        
-        $this->logger->info('Fallback URL redirect recorded', [
-            'record_id' => $recordId,
-            'url' => $url,
-            'action' => $action
-        ]);
-        
-        $response->getBody()->write(json_encode(['status' => 'success']));
-        return $response->withHeader('Content-Type', 'application/json');
-    }
 
     private function loadCustomerServices(): array
     {
@@ -240,35 +169,6 @@ class CustomerServiceController
         return json_decode(file_get_contents($file), true) ?: [];
     }
 
-    private function saveAssignment(array $assignment): void
-    {
-        $file = $this->dataDir . '/assignments.jsonl';
-        $line = json_encode($assignment, JSON_UNESCAPED_UNICODE) . "\n";
-        file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
-    }
-
-    private function updateAssignment(string $recordId, array $updates): void
-    {
-        $file = $this->dataDir . '/assignments.jsonl';
-        if (!file_exists($file)) return;
-        
-        $lines = file($file, FILE_IGNORE_NEW_LINES);
-        $updated = false;
-        
-        for ($i = 0; $i < count($lines); $i++) {
-            $assignment = json_decode($lines[$i], true);
-            if ($assignment && $assignment['id'] === $recordId) {
-                $assignment = array_merge($assignment, $updates);
-                $lines[$i] = json_encode($assignment, JSON_UNESCAPED_UNICODE);
-                $updated = true;
-                break;
-            }
-        }
-        
-        if ($updated) {
-            file_put_contents($file, implode("\n", $lines) . "\n");
-        }
-    }
 
     private function getClientIp(Request $request): string
     {
