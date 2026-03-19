@@ -61,6 +61,43 @@ class DatabaseHelper
         CREATE INDEX IF NOT EXISTS idx_flow_id ON clicks(flow_id);
         CREATE INDEX IF NOT EXISTS idx_filter_page ON clicks(filter_page);
         CREATE INDEX IF NOT EXISTS idx_flow_domain ON clicks(flow_domain);
+
+        CREATE TABLE IF NOT EXISTS conversion_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_marker TEXT UNIQUE NOT NULL,
+            gclid TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            referrer TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME NOT NULL,
+            converted INTEGER DEFAULT 0
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_session_marker ON conversion_sessions(session_marker);
+        CREATE INDEX IF NOT EXISTS idx_gclid ON conversion_sessions(gclid);
+        CREATE INDEX IF NOT EXISTS idx_created_at ON conversion_sessions(created_at);
+        CREATE INDEX IF NOT EXISTS idx_expires_at ON conversion_sessions(expires_at);
+
+        CREATE TABLE IF NOT EXISTS conversions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_marker TEXT NOT NULL,
+            gclid TEXT NOT NULL,
+            conversion_name TEXT NOT NULL DEFAULT 'LINE加入',
+            conversion_time DATETIME NOT NULL,
+            conversion_value REAL,
+            conversion_currency TEXT DEFAULT 'JPY',
+            timezone TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            referrer TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_conv_gclid ON conversions(gclid);
+        CREATE INDEX IF NOT EXISTS idx_conv_session_marker ON conversions(session_marker);
+        CREATE INDEX IF NOT EXISTS idx_conv_created_at ON conversions(created_at);
         SQL;
 
         try {

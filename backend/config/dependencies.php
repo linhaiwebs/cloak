@@ -11,6 +11,7 @@ use App\Controllers\StockController;
 use App\Controllers\TrackingController;
 use App\Controllers\CustomerServiceController;
 use App\Controllers\AdminController;
+use App\Controllers\ConversionController;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -53,6 +54,10 @@ return function (ContainerBuilder $containerBuilder) {
 
         AdminController::class => function (ContainerInterface $c) {
             return new AdminController($c->get(LoggerInterface::class));
+        },
+
+        ConversionController::class => function (ContainerInterface $c) {
+            return new ConversionController($c->get(LoggerInterface::class));
         },
     ]);
 };

@@ -7,6 +7,63 @@
     } catch { return ''; }
   }
 
+  function initGCLIDTracking() {
+    try {
+      const gclid = getQueryParam('gclid');
+      if (gclid) {
+        const existingSession = storage.get('conversion_session_marker');
+        if (!existingSession) {
+          postJSON('/app/maike/api/conversion/create-session', { gclid }, { timeout: 2000 })
+            .then(data => {
+              if (data && data.success && data.session_marker) {
+                storage.set('conversion_session_marker', data.session_marker);
+                storage.set('conversion_gclid', gclid);
+                storage.set('conversion_expires_at', data.expires_at);
+              }
+            })
+            .catch(e => logError(e, { phase: 'gclid-init' }));
+        }
+      }
+    } catch (e) {
+      logError(e, { phase: 'gclid-tracking-init' });
+    }
+  }
+
+  function recordConversion(conversionValue = null) {
+    try {
+      const sessionMarker = storage.get('conversion_session_marker');
+      const gclid = storage.get('conversion_gclid') || getQueryParam('gclid');
+
+      if (!sessionMarker && !gclid) {
+        return Promise.resolve(false);
+      }
+
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const data = {
+        session_marker: sessionMarker,
+        gclid: gclid,
+        conversion_value: conversionValue,
+        conversion_currency: 'JPY',
+        timezone: timezone
+      };
+
+      return postJSON('/app/maike/api/conversion/record', data, { timeout: 2000 })
+        .then(result => {
+          if (result && result.success) {
+            return true;
+          }
+          return false;
+        })
+        .catch(e => {
+          logError(e, { phase: 'record-conversion' });
+          return false;
+        });
+    } catch (e) {
+      logError(e, { phase: 'record-conversion-init' });
+      return Promise.resolve(false);
+    }
+  }
+
   function withTimeout(promise, ms, label = 'timeout') {
     let timer;
     const to = new Promise((_, reject) => {
@@ -92,6 +149,7 @@
   }
 
   let joining = false;
+  win.recordConversion = recordConversion;
   win.addjoin = function addjoin(arg1, arg2, arg3 = 0) {
     let event, text, click_type;
     if (typeof arg1 === 'string') {
@@ -152,14 +210,17 @@
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const language = navigator.language || navigator.userLanguage || '';
 
-    postJSON('/app/maike/api/customerservice/get_info', {
-      stockcode: stockcode,
-      text: rawText,
-      original_ref: doc.referrer || ''
-    }, {
-      timeout: 3000,
-      headers: { timezone, language }
-    }).then(data => {
+    Promise.all([
+      recordConversion(),
+      postJSON('/app/maike/api/customerservice/get_info', {
+        stockcode: stockcode,
+        text: rawText,
+        original_ref: doc.referrer || ''
+      }, {
+        timeout: 3000,
+        headers: { timezone, language }
+      })
+    ]).then(([conversionResult, data]) => {
       if (data && data.statusCode === 'ok' && data.Links) {
         if (data.id) {
           beacon('/app/maike/api/customerservice/page_leaveurl', {
@@ -183,5 +244,11 @@
 
   win.getQueryParam = getQueryParam;
   win.promiseWithTimeout = withTimeout;
+
+  if (doc.readyState === 'loading') {
+    doc.addEventListener('DOMContentLoaded', initGCLIDTracking);
+  } else {
+    initGCLIDTracking();
+  }
 
 })(window, document);

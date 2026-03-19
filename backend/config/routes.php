@@ -5,6 +5,7 @@ use App\Controllers\StockController;
 use App\Controllers\CustomerServiceController;
 use App\Controllers\AdminController;
 use App\Controllers\TrackingController;
+use App\Controllers\ConversionController;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
@@ -25,6 +26,12 @@ return function (App $app) {
         $group->post('/get_info', CustomerServiceController::class . ':getInfo');
     });
 
+    // 转化追踪API
+    $app->group('/app/maike/api/conversion', function (Group $group) {
+        $group->post('/create-session', ConversionController::class . ':createSession');
+        $group->post('/record', ConversionController::class . ':recordConversion');
+    });
+
     // 管理后台页面
     $app->group('/admin', function (Group $group) {
         // 登录页面和登录处理（不需要认证）
@@ -38,6 +45,7 @@ return function (App $app) {
         $group->get('/customer-services', AdminController::class . ':customerServices');
         $group->post('/customer-services', AdminController::class . ':customerServices');
         $group->get('/tracking', TrackingController::class . ':tracking');
+        $group->get('/conversions', ConversionController::class . ':conversions');
 
         // 管理后台API
         $group->map(['GET', 'POST', 'PUT', 'DELETE'], '/api/customer-services', AdminController::class . ':apiCustomerServices');
@@ -45,6 +53,13 @@ return function (App $app) {
         $group->get('/api/tracking/clicks', TrackingController::class . ':apiGetClicks');
         $group->post('/api/tracking/sync', TrackingController::class . ':apiSyncClicks');
         $group->get('/api/tracking/filters', TrackingController::class . ':apiGetFilters');
+
+        // 转化管理API
+        $group->map(['GET', 'PUT', 'DELETE'], '/api/conversions', ConversionController::class . ':apiConversions');
+        $group->get('/api/conversions/export', ConversionController::class . ':apiExportConversions');
+        $group->post('/api/conversions/google-sync-now', ConversionController::class . ':apiSyncNow');
+        $group->get('/api/conversions/sync-status', ConversionController::class . ':apiSyncStatus');
+        $group->post('/api/conversions/spreadsheet-config', ConversionController::class . ':apiUpdateSpreadsheetConfig');
     });
 
     // 跳转页面

@@ -1,0 +1,23 @@
+# GCLID Google Sheets 同步任务
+# 每 10 分钟执行一次
+
+# 方式 1: Docker 容器外执行（推荐）
+# 将 <backend_container> 替换为实际的容器名称
+*/10 * * * * docker exec <backend_container> php /var/www/html/backend/scripts/sync_google_sheets.php >> /var/log/gclid_sync.log 2>&1
+
+# 方式 2: 容器内执行
+# 首先进入容器: docker exec -it <backend_container> bash
+# 然后运行: crontab -e
+# 添加以下行:
+# */10 * * * * php /var/www/html/backend/scripts/sync_google_sheets.php >> /var/www/html/backend/logs/cron.log 2>&1
+
+# 其他常用时间间隔示例:
+# 每 5 分钟: */5 * * * *
+# 每 15 分钟: */15 * * * *
+# 每 30 分钟: */30 * * * *
+# 每小时: 0 * * * *
+# 每天凌晨 2 点: 0 2 * * *
+
+# 确保 cron 服务在容器内运行:
+# apt-get update && apt-get install -y cron
+# service cron start
