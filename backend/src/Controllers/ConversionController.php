@@ -326,13 +326,13 @@ class ConversionController
                 const value = conv.conversion_value !== null && conv.conversion_value !== '' ?
                     parseFloat(conv.conversion_value).toFixed(2) : '-';
                 tr.innerHTML = `
-                    <td>${conv.id}</td>
-                    <td>${conv.gclid}</td>
-                    <td>${conv.conversion_name}</td>
-                    <td>${conv.conversion_time}</td>
-                    <td>${value}</td>
-                    <td>${conv.conversion_currency}</td>
-                    <td><a href="#" class="edit-btn" onclick="editConversion(${conv.id}); return false;">编辑</a></td>
+                    <td>\${conv.id}</td>
+                    <td>\${conv.gclid}</td>
+                    <td>\${conv.conversion_name}</td>
+                    <td>\${conv.conversion_time}</td>
+                    <td>\${value}</td>
+                    <td>\${conv.conversion_currency}</td>
+                    <td><a href="#" class="edit-btn" onclick="editConversion(\${conv.id}); return false;">编辑</a></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -406,7 +406,7 @@ class ConversionController
 
                 if (data.success) {
                     status.className = 'alert alert-success';
-                    status.textContent = `同步成功！已同步 ${data.synced_count || 0} 条记录`;
+                    status.textContent = `同步成功！已同步 \${data.synced_count || 0} 条记录`;
                 } else {
                     status.className = 'alert alert-error';
                     status.textContent = '同步失败: ' + (data.error || '未知错误');
