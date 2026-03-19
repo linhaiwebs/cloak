@@ -184,7 +184,7 @@ class ConversionController
     public function conversions(Request $request, Response $response): Response
     {
         $adminController = new AdminController($this->logger);
-        if (!$adminController->isAuthenticated()) {
+        if (!$adminController->isAuthenticated($request)) {
             return $response
                 ->withHeader('Location', '/admin')
                 ->withStatus(302);
@@ -197,83 +197,80 @@ class ConversionController
 
     private function renderConversionsPage(): string
     {
-        return <<<'HTML'
+        $commonStyles = $this->getCommonStyles();
+        $sidebar = $this->getSidebar('conversions');
+
+        return <<<HTML
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>转化记录管理</title>
+    {$commonStyles}
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .header h1 { font-size: 24px; margin-bottom: 10px; }
-        .actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn:hover { background: #0056b3; }
-        .btn-secondary { background: #6c757d; }
-        .btn-secondary:hover { background: #545b62; }
-        .btn-success { background: #28a745; }
-        .btn-success:hover { background: #218838; }
-        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; font-weight: 600; }
-        tr:hover { background: #f8f9fa; }
-        .status { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        .status-synced { background: #d4edda; color: #155724; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .edit-btn { background: #17a2b8; padding: 5px 10px; border-radius: 3px; color: white; text-decoration: none; font-size: 14px; }
-        .edit-btn:hover { background: #138496; }
-        .nav { margin-bottom: 10px; }
-        .nav a { color: #007bff; text-decoration: none; margin-right: 15px; }
-        .nav a:hover { text-decoration: underline; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 5% auto; padding: 30px; width: 90%; max-width: 600px; border-radius: 8px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        .loading { text-align: center; padding: 40px; color: #666; }
+        .edit-btn {
+            background: #17a2b8;
+            padding: 5px 10px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+        .edit-btn:hover {
+            background: #138496;
+        }
+        .delete-btn {
+            background: var(--danger);
+            padding: 5px 10px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            transition: background 0.2s;
+            margin-left: 8px;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    {$sidebar}
+    <div class="main-content">
         <div class="header">
-            <div class="nav">
-                <a href="/admin/dashboard">Dashboard</a>
-                <a href="/admin/customer-services">客服管理</a>
-                <a href="/admin/tracking">点击追踪</a>
-                <a href="/admin/conversions" style="font-weight: bold;">转化管理</a>
-                <a href="/admin/logout" style="float: right;">退出</a>
-            </div>
-            <h1>GCLID 转化记录管理</h1>
-            <div class="actions">
+            <h1 class="header-title">GCLID 转化记录管理</h1>
+            <div class="header-actions">
                 <button class="btn" onclick="location.reload()">刷新</button>
                 <button class="btn btn-success" onclick="exportCSV()">导出 CSV</button>
-                <button class="btn btn-secondary" onclick="showGoogleAuth()">Google Sheets 授权</button>
-                <button class="btn btn-secondary" id="syncBtn" onclick="syncGoogleSheets()">立即同步到 Google Sheets</button>
+                <button class="btn" onclick="showGoogleAuth()">Google Sheets 授权</button>
+                <button class="btn btn-primary" id="syncBtn" onclick="syncGoogleSheets()">立即同步到 Google Sheets</button>
             </div>
-            <div id="syncStatus" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
         </div>
 
-        <div class="table-container">
-            <div class="loading" id="loading">加载中...</div>
-            <table id="conversionsTable" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>GCLID</th>
-                        <th>转化名称</th>
-                        <th>转化时间</th>
-                        <th>转化价值</th>
-                        <th>货币</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="conversionsBody"></tbody>
-            </table>
+        <div id="syncStatus" class="alert alert-info" style="display: none;"></div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="loading" id="loading">加载中...</div>
+                <table id="conversionsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>GCLID</th>
+                            <th>转化名称</th>
+                            <th>转化时间</th>
+                            <th>转化价值</th>
+                            <th>货币</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="conversionsBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -400,8 +397,7 @@ class ConversionController
             btn.disabled = true;
             btn.textContent = '同步中...';
             status.style.display = 'block';
-            status.style.background = '#cce5ff';
-            status.style.color = '#004085';
+            status.className = 'alert alert-info';
             status.textContent = '正在同步到 Google Sheets...';
 
             try {
@@ -409,17 +405,14 @@ class ConversionController
                 const data = await res.json();
 
                 if (data.success) {
-                    status.style.background = '#d4edda';
-                    status.style.color = '#155724';
+                    status.className = 'alert alert-success';
                     status.textContent = `同步成功！已同步 ${data.synced_count || 0} 条记录`;
                 } else {
-                    status.style.background = '#f8d7da';
-                    status.style.color = '#721c24';
+                    status.className = 'alert alert-error';
                     status.textContent = '同步失败: ' + (data.error || '未知错误');
                 }
             } catch (e) {
-                status.style.background = '#f8d7da';
-                status.style.color = '#721c24';
+                status.className = 'alert alert-error';
                 status.textContent = '同步失败: ' + e.message;
             }
 
@@ -826,5 +819,315 @@ HTML;
     private function saveSettings(array $settings): void
     {
         file_put_contents($this->settingsPath, json_encode($settings, JSON_PRETTY_PRINT));
+    }
+
+    private function getCommonStyles(): string
+    {
+        return <<<'CSS'
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 24px 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--gray-700);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-50);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: #eff6ff;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+            padding-left: 21px;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+        }
+
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            padding: 32px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--gray-50);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-synced {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-500);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+CSS;
+    }
+
+    private function getSidebar(string $active = ''): string
+    {
+        $nav = [
+            ['id' => 'dashboard', 'label' => '仪表板', 'icon' => '📊', 'url' => '/admin/dashboard'],
+            ['id' => 'customer-services', 'label' => '客服管理', 'icon' => '👥', 'url' => '/admin/customer-services'],
+            ['id' => 'tracking', 'label' => '追踪数据', 'icon' => '📈', 'url' => '/admin/tracking'],
+            ['id' => 'conversions', 'label' => '转化管理', 'icon' => '🎯', 'url' => '/admin/conversions'],
+        ];
+
+        $navHtml = '';
+        foreach ($nav as $item) {
+            $activeClass = $item['id'] === $active ? 'active' : '';
+            $navHtml .= "<a href='{$item['url']}' class='nav-item {$activeClass}'>
+                <span class='nav-icon'>{$item['icon']}</span>
+                {$item['label']}
+            </a>";
+        }
+
+        return <<<HTML
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">管理后台</div>
+            </div>
+            {$navHtml}
+            <a href="/admin/logout" class="nav-item" style="position: absolute; bottom: 24px; width: calc(100% - 48px);">
+                <span class="nav-icon">🚪</span>
+                退出登录
+            </a>
+        </div>
+HTML;
     }
 }

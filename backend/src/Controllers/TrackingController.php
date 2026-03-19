@@ -1048,6 +1048,7 @@ CSS;
             ['id' => 'dashboard', 'label' => '仪表板', 'icon' => '📊', 'url' => '/admin/dashboard'],
             ['id' => 'customer-services', 'label' => '客服管理', 'icon' => '👥', 'url' => '/admin/customer-services'],
             ['id' => 'tracking', 'label' => '追踪数据', 'icon' => '📈', 'url' => '/admin/tracking'],
+            ['id' => 'conversions', 'label' => '转化管理', 'icon' => '🎯', 'url' => '/admin/conversions'],
         ];
 
         $navHtml = '';

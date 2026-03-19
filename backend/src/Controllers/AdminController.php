@@ -22,9 +22,13 @@ class AdminController
         }
     }
 
-    private function isAuthenticated(Request $request): bool
+    public function isAuthenticated(Request $request = null): bool
     {
-        $cookies = $request->getCookieParams();
+        if ($request === null) {
+            $cookies = $_COOKIE;
+        } else {
+            $cookies = $request->getCookieParams();
+        }
         return isset($cookies['admin_logged_in']) && $cookies['admin_logged_in'] === 'true';
     }
 
@@ -1306,6 +1310,7 @@ HTML;
             ['id' => 'dashboard', 'label' => '仪表板', 'icon' => '📊', 'url' => '/admin/dashboard'],
             ['id' => 'customer-services', 'label' => '客服管理', 'icon' => '👥', 'url' => '/admin/customer-services'],
             ['id' => 'tracking', 'label' => '追踪数据', 'icon' => '📈', 'url' => '/admin/tracking'],
+            ['id' => 'conversions', 'label' => '转化管理', 'icon' => '🎯', 'url' => '/admin/conversions'],
         ];
 
         $navHtml = '';
