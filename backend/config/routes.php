@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Controllers\StockController;
 use App\Controllers\CustomerServiceController;
 use App\Controllers\AdminController;
+use App\Controllers\TrackingController;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
@@ -36,10 +37,14 @@ return function (App $app) {
         $group->get('/dashboard', AdminController::class . ':dashboard');
         $group->get('/customer-services', AdminController::class . ':customerServices');
         $group->post('/customer-services', AdminController::class . ':customerServices');
+        $group->get('/tracking', TrackingController::class . ':tracking');
 
         // 管理后台API
         $group->map(['GET', 'POST', 'PUT', 'DELETE'], '/api/customer-services', AdminController::class . ':apiCustomerServices');
         $group->map(['GET', 'POST'], '/api/settings', AdminController::class . ':apiSettings');
+        $group->get('/api/tracking/clicks', TrackingController::class . ':apiGetClicks');
+        $group->post('/api/tracking/sync', TrackingController::class . ':apiSyncClicks');
+        $group->get('/api/tracking/filters', TrackingController::class . ':apiGetFilters');
     });
 
     // 跳转页面

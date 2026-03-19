@@ -15,8 +15,13 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# 安装系统依赖 for SQLite
+RUN apt-get update && apt-get install -y \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # 安装 PHP 扩展
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd curl xml dom
+RUN docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd curl xml dom
 
 # 安装 Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
