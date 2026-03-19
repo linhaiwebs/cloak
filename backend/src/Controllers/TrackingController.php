@@ -138,6 +138,14 @@ class TrackingController
             }
 
             $clicks = $apiResponse['data'] ?? [];
+
+            foreach ($clicks as &$click) {
+                if (!empty($click['referer'])) {
+                    $domain = $this->extractDomainFromUrl($click['referer']);
+                    $click['flow_domain'] = $domain;
+                }
+            }
+
             $inserted = $this->db->insertClicks($clicks);
 
             $response->getBody()->write(json_encode([
@@ -157,13 +165,26 @@ class TrackingController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    private function extractDomainFromUrl(string $url): ?string
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        $parsed = parse_url($url);
+        return $parsed['host'] ?? null;
+    }
+
     public function apiGetFilters(Request $request, Response $response): Response
     {
         $authResponse = $this->requireAuth($request, $response);
         if ($authResponse) return $authResponse;
 
         try {
-            $options = $this->db->getFilterOptions();
+            $params = $request->getQueryParams();
+            $domain = $params['domain'] ?? null;
+
+            $options = $this->db->getFilterOptions($domain);
             $response->getBody()->write(json_encode([
                 'success' => true,
                 'filters' => $options
@@ -434,8 +455,10 @@ class TrackingController
                             </select>
                         </div>
                         <div class="filter-item">
-                            <label>流量流ID</label>
-                            <input type="text" id="flow_ids" placeholder="多个用逗号分隔">
+                            <label>流程 (Flows)</label>
+                            <select id="filter_flows" multiple style="height: 38px;">
+                                <option value="">全部</option>
+                            </select>
                         </div>
                         <div class="filter-item">
                             <label>设备</label>
@@ -508,6 +531,8 @@ class TrackingController
     <script>
         let currentPage = 1;
         let currentFilters = {};
+        let currentDomain = window.location.hostname;
+        let defaultFlows = [];
 
         const countryNames = {
             'US': '美国', 'CN': '中国', 'JP': '日本', 'GB': '英国', 'DE': '德国',
@@ -651,7 +676,7 @@ class TrackingController
 
         async function loadFilterOptions() {
             try {
-                const response = await fetch('/admin/api/tracking/filters');
+                const response = await fetch(`/admin/api/tracking/filters?domain=${encodeURIComponent(currentDomain)}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -672,6 +697,23 @@ class TrackingController
                     const browsersSelect = document.getElementById('browsers');
                     browsersSelect.innerHTML = '<option value="">全部</option>' +
                         filters.browsers.map(b => `<option value="${b}">${b}</option>`).join('');
+
+                    const flowsSelect = document.getElementById('filter_flows');
+                    if (filters.flows && filters.flows.length > 0) {
+                        flowsSelect.innerHTML = filters.flows.map(f =>
+                            `<option value="${f.flow_id}">${f.flow_id}${f.flow_domain ? ' (' + f.flow_domain + ')' : ''}</option>`
+                        ).join('');
+
+                        defaultFlows = filters.flows.map(f => f.flow_id);
+
+                        for (let i = 0; i < flowsSelect.options.length; i++) {
+                            flowsSelect.options[i].selected = true;
+                        }
+
+                        applyFilters();
+                    } else {
+                        flowsSelect.innerHTML = '<option value="">暂无数据</option>';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading filter options:', error);
@@ -684,7 +726,7 @@ class TrackingController
             const dateFrom = document.getElementById('date_from').value;
             const dateTo = document.getElementById('date_to').value;
             const countries = Array.from(document.getElementById('countries').selectedOptions).map(o => o.value).filter(v => v);
-            const flowIds = document.getElementById('flow_ids').value.split(',').map(s => s.trim()).filter(v => v);
+            const filterFlows = Array.from(document.getElementById('filter_flows').selectedOptions).map(o => o.value).filter(v => v);
             const devices = document.getElementById('devices').value;
             const os = document.getElementById('os').value;
             const browsers = document.getElementById('browsers').value;
@@ -693,7 +735,7 @@ class TrackingController
             if (dateFrom) currentFilters.date_from = dateFrom;
             if (dateTo) currentFilters.date_to = dateTo;
             if (countries.length) currentFilters.countries = countries.join(',');
-            if (flowIds.length) currentFilters.flow_ids = flowIds.join(',');
+            if (filterFlows.length) currentFilters.flow_ids = filterFlows.join(',');
             if (devices) currentFilters.devices = devices;
             if (os) currentFilters.os = os;
             if (browsers) currentFilters.browsers = browsers;
@@ -706,14 +748,18 @@ class TrackingController
             document.getElementById('date_from').value = '';
             document.getElementById('date_to').value = '';
             document.getElementById('countries').selectedIndex = 0;
-            document.getElementById('flow_ids').value = '';
             document.getElementById('devices').selectedIndex = 0;
             document.getElementById('os').selectedIndex = 0;
             document.getElementById('browsers').selectedIndex = 0;
             document.getElementById('page_type').selectedIndex = 0;
 
+            const flowsSelect = document.getElementById('filter_flows');
+            for (let i = 0; i < flowsSelect.options.length; i++) {
+                flowsSelect.options[i].selected = defaultFlows.includes(flowsSelect.options[i].value);
+            }
+
             currentFilters = {};
-            loadData(1);
+            applyFilters();
         }
 
         async function syncData() {
@@ -805,7 +851,6 @@ class TrackingController
 
         document.addEventListener('DOMContentLoaded', () => {
             loadFilterOptions();
-            loadData(1);
         });
     </script>
 </body>

@@ -36,6 +36,7 @@ class DatabaseHelper
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             click_id TEXT UNIQUE NOT NULL,
             flow_id INTEGER,
+            flow_domain TEXT,
             date_created TEXT,
             time_created INTEGER,
             country_code TEXT,
@@ -59,10 +60,24 @@ class DatabaseHelper
         CREATE INDEX IF NOT EXISTS idx_country_code ON clicks(country_code);
         CREATE INDEX IF NOT EXISTS idx_flow_id ON clicks(flow_id);
         CREATE INDEX IF NOT EXISTS idx_filter_page ON clicks(filter_page);
+        CREATE INDEX IF NOT EXISTS idx_flow_domain ON clicks(flow_domain);
         SQL;
 
         try {
             $this->pdo->exec($sql);
+
+            $columns = $this->pdo->query("PRAGMA table_info(clicks)")->fetchAll(PDO::FETCH_ASSOC);
+            $hasFlowDomain = false;
+            foreach ($columns as $column) {
+                if ($column['name'] === 'flow_domain') {
+                    $hasFlowDomain = true;
+                    break;
+                }
+            }
+
+            if (!$hasFlowDomain) {
+                $this->pdo->exec("ALTER TABLE clicks ADD COLUMN flow_domain TEXT");
+            }
         } catch (PDOException $e) {
             throw new \RuntimeException('Database initialization failed: ' . $e->getMessage());
         }
@@ -72,11 +87,11 @@ class DatabaseHelper
     {
         $sql = <<<SQL
         INSERT OR IGNORE INTO clicks (
-            click_id, flow_id, date_created, time_created, country_code,
+            click_id, flow_id, flow_domain, date_created, time_created, country_code,
             ip_address, isp, referer, user_agent, device, brand, os,
             browser, filter_type, filter_page
         ) VALUES (
-            :click_id, :flow_id, :date_created, :time_created, :country_code,
+            :click_id, :flow_id, :flow_domain, :date_created, :time_created, :country_code,
             :ip_address, :isp, :referer, :user_agent, :device, :brand, :os,
             :browser, :filter_type, :filter_page
         )
@@ -90,6 +105,7 @@ class DatabaseHelper
                 $stmt->execute([
                     ':click_id' => $click['click_id'] ?? '',
                     ':flow_id' => $click['flow_id'] ?? null,
+                    ':flow_domain' => $click['flow_domain'] ?? null,
                     ':date_created' => $click['date_created'] ?? '',
                     ':time_created' => $click['time_created'] ?? null,
                     ':country_code' => $click['country_code'] ?? '',
@@ -222,7 +238,7 @@ class DatabaseHelper
         ];
     }
 
-    public function getFilterOptions(): array
+    public function getFilterOptions(?string $domain = null): array
     {
         $countries = $this->pdo->query("SELECT DISTINCT country_code FROM clicks WHERE country_code != '' ORDER BY country_code")->fetchAll(PDO::FETCH_COLUMN);
         $devices = $this->pdo->query("SELECT DISTINCT device FROM clicks WHERE device != '' ORDER BY device")->fetchAll(PDO::FETCH_COLUMN);
@@ -230,13 +246,27 @@ class DatabaseHelper
         $browsers = $this->pdo->query("SELECT DISTINCT browser FROM clicks WHERE browser != '' ORDER BY browser")->fetchAll(PDO::FETCH_COLUMN);
         $filterTypes = $this->pdo->query("SELECT DISTINCT filter_type FROM clicks WHERE filter_type != '' ORDER BY filter_type")->fetchAll(PDO::FETCH_COLUMN);
 
+        $flowsSql = "SELECT DISTINCT flow_id, flow_domain FROM clicks WHERE flow_id IS NOT NULL";
+        if ($domain) {
+            $flowsSql .= " AND flow_domain = :domain";
+        }
+        $flowsSql .= " ORDER BY flow_id";
+
+        $stmt = $this->pdo->prepare($flowsSql);
+        if ($domain) {
+            $stmt->bindValue(':domain', $domain, PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        $flows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         return [
             'countries' => $countries,
             'devices' => $devices,
             'os' => $os,
             'browsers' => $browsers,
             'filter_types' => $filterTypes,
-            'page_types' => ['white', 'offer']
+            'page_types' => ['white', 'offer'],
+            'flows' => $flows
         ];
     }
 
