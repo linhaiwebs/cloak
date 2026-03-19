@@ -6,6 +6,7 @@ use App\Controllers\CustomerServiceController;
 use App\Controllers\AdminController;
 use App\Controllers\TrackingController;
 use App\Controllers\ConversionController;
+use App\Controllers\InfoController;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
@@ -30,6 +31,12 @@ return function (App $app) {
     $app->group('/app/maike/api/conversion', function (Group $group) {
         $group->post('/create-session', ConversionController::class . ':createSession');
         $group->post('/record', ConversionController::class . ':recordConversion');
+    });
+
+    // 信息追踪API
+    $app->group('/app/maike/api/info', function (Group $group) {
+        $group->post('/page_track', InfoController::class . ':pageTrack');
+        $group->post('/logError', InfoController::class . ':logError');
     });
 
     // 管理后台页面

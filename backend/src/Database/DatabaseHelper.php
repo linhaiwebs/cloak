@@ -8,6 +8,7 @@ use PDOException;
 
 class DatabaseHelper
 {
+    private static ?DatabaseHelper $instance = null;
     private PDO $pdo;
     private string $dbPath;
 
@@ -16,6 +17,15 @@ class DatabaseHelper
         $this->dbPath = $dataDir . '/tracking.db';
         $this->connect();
         $this->initializeDatabase();
+    }
+
+    public static function getInstance(): DatabaseHelper
+    {
+        if (self::$instance === null) {
+            $dataDir = __DIR__ . '/../../data';
+            self::$instance = new self($dataDir);
+        }
+        return self::$instance;
     }
 
     private function connect(): void
@@ -98,6 +108,39 @@ class DatabaseHelper
         CREATE INDEX IF NOT EXISTS idx_conv_gclid ON conversions(gclid);
         CREATE INDEX IF NOT EXISTS idx_conv_session_marker ON conversions(session_marker);
         CREATE INDEX IF NOT EXISTS idx_conv_created_at ON conversions(created_at);
+
+        CREATE TABLE IF NOT EXISTS page_tracks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            url TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            click_type TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_page_tracks_timestamp ON page_tracks(timestamp);
+        CREATE INDEX IF NOT EXISTS idx_page_tracks_click_type ON page_tracks(click_type);
+        CREATE INDEX IF NOT EXISTS idx_page_tracks_created_at ON page_tracks(created_at);
+
+        CREATE TABLE IF NOT EXISTS error_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message TEXT,
+            stack TEXT,
+            phase TEXT,
+            btn_text TEXT,
+            click_type TEXT,
+            stockcode TEXT,
+            href TEXT,
+            ref TEXT,
+            ts TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_error_logs_phase ON error_logs(phase);
+        CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at);
         SQL;
 
         try {

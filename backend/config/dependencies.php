@@ -12,6 +12,8 @@ use App\Controllers\TrackingController;
 use App\Controllers\CustomerServiceController;
 use App\Controllers\AdminController;
 use App\Controllers\ConversionController;
+use App\Controllers\InfoController;
+use App\Database\DatabaseHelper;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -58,6 +60,14 @@ return function (ContainerBuilder $containerBuilder) {
 
         ConversionController::class => function (ContainerInterface $c) {
             return new ConversionController($c->get(LoggerInterface::class));
+        },
+
+        InfoController::class => function (ContainerInterface $c) {
+            return new InfoController($c->get(DatabaseHelper::class));
+        },
+
+        DatabaseHelper::class => function (ContainerInterface $c) {
+            return DatabaseHelper::getInstance();
         },
     ]);
 };
