@@ -209,32 +209,113 @@ class ConversionController
     <title>转化记录管理</title>
     {$commonStyles}
     <style>
+        .conversions-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .conversions-table thead {
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+            position: sticky;
+            top: 56px;
+            z-index: 10;
+        }
+
+        .conversions-table th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-300);
+            white-space: nowrap;
+        }
+
+        .conversions-table td {
+            padding: 14px 12px;
+            font-size: 13px;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .conversions-table tbody tr {
+            transition: background-color 0.15s;
+        }
+
+        .conversions-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
         .edit-btn {
-            background: #17a2b8;
-            padding: 5px 10px;
+            background: var(--info);
+            padding: 5px 12px;
             border-radius: 6px;
             color: white;
             text-decoration: none;
-            font-size: 14px;
-            display: inline-block;
-            transition: background 0.2s;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
         }
         .edit-btn:hover {
-            background: #138496;
+            background: #2563eb;
+            transform: translateY(-1px);
         }
+
         .delete-btn {
             background: var(--danger);
-            padding: 5px 10px;
+            padding: 5px 12px;
             border-radius: 6px;
             color: white;
             text-decoration: none;
-            font-size: 14px;
-            display: inline-block;
-            transition: background 0.2s;
-            margin-left: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
         }
         .delete-btn:hover {
             background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .gclid-cell {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: var(--gray-600);
+            background: var(--gray-50);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .conversion-name {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
         }
     </style>
 </head>
@@ -254,18 +335,18 @@ class ConversionController
         <div id="syncStatus" class="alert alert-info" style="display: none;"></div>
 
         <div class="card">
-            <div class="card-body">
-                <div class="loading" id="loading">加载中...</div>
-                <table id="conversionsTable" style="display: none;">
+            <div class="card-body" style="padding: 0; overflow-x: auto;">
+                <div class="loading" id="loading" style="padding: 40px; text-align: center; color: var(--gray-500);">加载中...</div>
+                <table id="conversionsTable" class="conversions-table" style="display: none;">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>GCLID</th>
-                            <th>转化名称</th>
-                            <th>转化时间</th>
-                            <th>转化价值</th>
-                            <th>货币</th>
-                            <th>操作</th>
+                            <th style="width: 60px;">ID</th>
+                            <th style="width: 180px;">GCLID</th>
+                            <th style="width: 140px;">转化名称</th>
+                            <th style="width: 180px;">转化时间</th>
+                            <th style="width: 100px;">转化价值</th>
+                            <th style="width: 80px;">货币</th>
+                            <th style="width: 140px;">操作</th>
                         </tr>
                     </thead>
                     <tbody id="conversionsBody"></tbody>
@@ -321,21 +402,29 @@ class ConversionController
             const tbody = document.getElementById('conversionsBody');
             tbody.innerHTML = '';
 
-            conversions.forEach(conv => {
-                const tr = document.createElement('tr');
-                const value = conv.conversion_value !== null && conv.conversion_value !== '' ?
-                    parseFloat(conv.conversion_value).toFixed(2) : '-';
-                tr.innerHTML = `
-                    <td>\${conv.id}</td>
-                    <td>\${conv.gclid}</td>
-                    <td>\${conv.conversion_name}</td>
-                    <td>\${conv.conversion_time}</td>
-                    <td>\${value}</td>
-                    <td>\${conv.conversion_currency}</td>
-                    <td><a href="#" class="edit-btn" onclick="editConversion(\${conv.id}); return false;">编辑</a></td>
-                `;
-                tbody.appendChild(tr);
-            });
+            if (conversions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--gray-500);">暂无转化记录</td></tr>';
+            } else {
+                conversions.forEach(conv => {
+                    const tr = document.createElement('tr');
+                    const value = conv.conversion_value !== null && conv.conversion_value !== '' ?
+                        parseFloat(conv.conversion_value).toFixed(2) : '-';
+                    tr.innerHTML = `
+                        <td style="font-weight: 500; color: var(--gray-600);">\${conv.id}</td>
+                        <td><span class="gclid-cell">\${conv.gclid}</span></td>
+                        <td><span class="conversion-name">\${conv.conversion_name}</span></td>
+                        <td style="color: var(--gray-600);">\${conv.conversion_time}</td>
+                        <td style="font-weight: 500; color: var(--gray-800);">\${value}</td>
+                        <td style="color: var(--gray-600);">\${conv.conversion_currency}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="edit-btn" onclick="editConversion(\${conv.id})">✏️ 编辑</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('conversionsTable').style.display = 'table';

@@ -238,10 +238,10 @@ class TrackingController
     <style>
         .filter-panel {
             background: white;
+            border: 1px solid var(--gray-200);
             border-radius: 8px;
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .filter-grid {
@@ -257,7 +257,7 @@ class TrackingController
         }
 
         .filter-item label {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             margin-bottom: 6px;
             color: var(--gray-700);
@@ -269,6 +269,13 @@ class TrackingController
             border: 1px solid var(--gray-300);
             border-radius: 6px;
             font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        .filter-item input:focus,
+        .filter-item select:focus {
+            outline: none;
+            border-color: var(--primary);
         }
 
         .filter-actions {
@@ -284,59 +291,62 @@ class TrackingController
         }
 
         .tracking-table thead {
-            background: var(--gray-50);
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+            position: sticky;
+            top: 56px;
+            z-index: 10;
         }
 
         .tracking-table th {
-            padding: 12px 8px;
+            padding: 14px 12px;
             text-align: left;
             font-weight: 600;
+            font-size: 13px;
             color: var(--gray-700);
-            border-bottom: 2px solid var(--gray-200);
+            border-bottom: 2px solid var(--gray-300);
             white-space: nowrap;
         }
 
         .tracking-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid var(--gray-100);
+            padding: 14px 12px;
+            font-size: 13px;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .tracking-table tbody tr {
+            transition: background-color 0.15s;
         }
 
         .tracking-table tbody tr:hover {
-            background: var(--gray-50);
-        }
-
-        .tracking-table tbody tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        .tracking-table tbody tr:nth-child(even):hover {
-            background: var(--gray-50);
+            background: #f8fafc;
         }
 
         .country-cell {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .country-flag {
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .user-agent-cell {
-            max-width: 200px;
+            max-width: 250px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             cursor: help;
             position: relative;
+            color: var(--gray-600);
         }
 
         .tooltip {
             position: fixed;
             background: #1f2937;
             color: white;
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: 6px;
             font-size: 12px;
             max-width: 400px;
@@ -347,16 +357,18 @@ class TrackingController
         }
 
         .page-tag {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 14px;
             font-size: 11px;
             font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
         .page-tag.white {
-            background: #f3f4f6;
-            color: #374151;
+            background: #f1f5f9;
+            color: #475569;
         }
 
         .page-tag.offer {

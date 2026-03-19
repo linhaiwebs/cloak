@@ -594,23 +594,33 @@ class AdminController
                 font-size: 13px;
             }
 
+            thead {
+                background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+            }
+
             th {
                 text-align: left;
-                padding: 10px 12px;
-                background: var(--gray-50);
+                padding: 14px 12px;
                 font-weight: 600;
                 color: var(--gray-700);
-                border-bottom: 1px solid var(--gray-200);
-                font-size: 12px;
+                border-bottom: 2px solid var(--gray-300);
+                font-size: 13px;
+                white-space: nowrap;
             }
 
             td {
-                padding: 10px 12px;
-                border-bottom: 1px solid var(--gray-100);
+                padding: 14px 12px;
+                font-size: 13px;
+                color: var(--gray-700);
+                border-bottom: 1px solid var(--gray-200);
             }
 
-            tr:hover {
-                background: var(--gray-50);
+            tbody tr {
+                transition: background-color 0.15s;
+            }
+
+            tbody tr:hover {
+                background: #f8fafc;
             }
 
             .modal {
@@ -1181,19 +1191,25 @@ HTML;
                 return;
             }
 
-            tbody.innerHTML = services.map(service => `
+            tbody.innerHTML = services.map(service => {
+                const truncatedUrl = service.url.length > 50 ? service.url.substring(0, 50) + '...' : service.url;
+                const truncatedFallback = service.fallback_url.length > 40 ? service.fallback_url.substring(0, 40) + '...' : service.fallback_url;
+                return `
                 <tr>
-                    <td><strong>${service.name}</strong></td>
-                    <td><a href="${service.url}" target="_blank" style="color: var(--primary); text-decoration: none;">${service.url.substring(0, 40)}...</a></td>
-                    <td><a href="${service.fallback_url}" target="_blank" style="color: var(--gray-500); text-decoration: none; font-size: 12px;">${service.fallback_url}</a></td>
+                    <td><strong style="color: var(--gray-800);">${service.name}</strong></td>
+                    <td><a href="${service.url}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 13px;" title="${service.url}">${truncatedUrl}</a></td>
+                    <td><a href="${service.fallback_url}" target="_blank" style="color: var(--gray-600); text-decoration: none; font-size: 13px;" title="${service.fallback_url}">${truncatedFallback}</a></td>
                     <td><span class="badge badge-${service.status === 'active' ? 'success' : 'danger'}">${service.status === 'active' ? '活跃' : '停用'}</span></td>
-                    <td style="font-size: 12px; color: var(--gray-500);">${service.created_at}</td>
+                    <td style="color: var(--gray-600);">${service.created_at}</td>
                     <td style="text-align: right;">
-                        <button class="btn btn-secondary btn-sm" onclick="editService('${service.id}')">编辑</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteService('${service.id}')">删除</button>
+                        <div style="display: inline-flex; gap: 6px;">
+                            <button class="btn btn-secondary btn-sm" onclick="editService('${service.id}')">✏️ 编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteService('${service.id}')">🗑️ 删除</button>
+                        </div>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function showAddModal() {
