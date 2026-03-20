@@ -1,576 +1,616 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- Google Tag Manager -->
-    <script>(function (w, d, s, l, i) {
-            w[l] = w[l] || []; w[l].push({
-                'gtm.start':
-                    new Date().getTime(), event: 'gtm.js'
-            }); var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-MH7RH4LV');</script>
-    <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>デジタルインサイト - 情報ポータル</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本NISA 2025制度完全指南</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
-
         * {
-            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section-divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
-            margin: 2rem 0;
-        }
-
-        .info-badge {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
-        }
-
-        .content-card {
-            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            border-radius: 16px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .content-card:active {
-            transform: scale(0.98);
-        }
-
-        .cta-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-            border: none;
-            width: 100%;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .cta-button:active {
-            transform: scale(0.96);
-        }
-
-        .icon-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .feature-item {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .accordion-item {
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .accordion-header {
-            padding: 1rem 1.25rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            line-height: 1.8;
             color: #333;
-            transition: background 0.2s;
-        }
-
-        .accordion-header:active {
-            background: #f5f5f5;
-        }
-
-        .accordion-content {
-            padding: 0 1.25rem 1rem 1.25rem;
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            display: none;
-        }
-
-        .accordion-content.active {
-            display: block;
-        }
-
-        .floating-nav {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 30px;
-            padding: 0.75rem 1.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .nav-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ddd;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .nav-dot.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 30px;
-            border-radius: 10px;
-        }
-
-        .scroll-container {
-            height: calc(100vh - 40px);
-            overflow-y: auto;
-            scroll-snap-type: y mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .scroll-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-            scroll-snap-align: start;
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
         }
 
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: pulse 2s infinite;
-            display: inline-block;
-            margin-right: 0.5rem;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
         }
 
-        .tag-pill {
-            display: inline-block;
-            padding: 0.4rem 1rem;
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .section {
             background: white;
             border-radius: 20px;
-            font-size: 0.85rem;
-            color: #666;
-            margin: 0.25rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
 
-        .disclaimer-box {
-            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
-            border-left: 4px solid #ef4444;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            font-size: 0.85rem;
-            color: #991b1b;
+        h2 {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            font-weight: 600;
         }
 
-        @media (max-width: 640px) {
-            .scroll-section {
-                padding: 1.5rem 1rem;
+        h3 {
+            font-size: 1.5em;
+            color: #764ba2;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-left: 5px solid #e17055;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 3px 15px rgba(225,112,85,0.2);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+            border-left: 5px solid #0984e3;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .comparison-table td {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        .comparison-table tr:hover td {
+            background: #f5f7fa;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .old-system {
+            background: #ffe6e6 !important;
+        }
+
+        .new-system {
+            background: #e6ffe6 !important;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+
+        .badge-old {
+            background: #fab1a0;
+            color: #d63031;
+        }
+
+        .badge-new {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .badge-important {
+            background: #fdcb6e;
+            color: #e17055;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+            line-height: 1.8;
+        }
+
+        .key-point {
+            background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(116,185,255,0.3);
+        }
+
+        .amount-display {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .legal-section {
+            background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-top: 50px;
+        }
+
+        .legal-section h2 {
+            color: white;
+            border-bottom-color: white;
+        }
+
+        .legal-section a {
+            color: #74b9ff;
+            text-decoration: none;
+            border-bottom: 1px solid #74b9ff;
+            transition: all 0.3s ease;
+        }
+
+        .legal-section a:hover {
+            color: #a29bfe;
+            border-bottom-color: #a29bfe;
+        }
+
+        .disclaimer {
+            background: #fff5f5;
+            border: 2px solid #ff7675;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #d63031;
+            font-size: 0.95em;
+        }
+
+        .disclaimer strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #636e72;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .section {
+                padding: 25px;
+            }
+
+            .comparison-table {
+                font-size: 0.9em;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 12px;
+            }
+
+            .amount-display {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .comparison-table {
+                font-size: 0.85em;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Floating Navigation -->
-    <div class="floating-nav" id="floatingNav">
-        <div class="nav-dot active" data-section="0"></div>
-        <div class="nav-dot" data-section="1"></div>
-        <div class="nav-dot" data-section="2"></div>
-        <div class="nav-dot" data-section="3"></div>
-        <div class="nav-dot" data-section="4"></div>
+    <header>
+        <h1>📊 日本NISA 2025制度完全指南</h1>
+        <p class="subtitle">新しいNISA制度を徹底解説 - 免税投資の全て</p>
+    </header>
+
+    <div class="container">
+        <!-- イントロダクション -->
+        <section class="section">
+            <h2>🎯 NISA制度とは</h2>
+            <p>NISA(ニーサ)とは、「少額投資非課税制度」の愛称で、投資で得た利益が非課税になる制度です。2024年から制度が大幅に改正され、より使いやすく、投資枠も拡大されました。</p>
+
+            <div class="highlight-box">
+                <strong>🔥 2024年からの主な変更点</strong>
+                <ul>
+                    <li>非課税保有期間が<strong>無期限化</strong></li>
+                    <li>年間投資枠が<strong>大幅拡大</strong></li>
+                    <li>つみたて投資枠と成長投資枠の<strong>併用が可能</strong></li>
+                    <li>生涯非課税限度額が<strong>1,800万円</strong>に</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 新旧NISA比較表 -->
+        <section class="section">
+            <h2>📋 新旧NISA制度比較表</h2>
+
+            <h3>つみたてNISA・つみたて投資枠の比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th><span class="badge badge-old">旧制度</span>つみたてNISA</th>
+                        <th><span class="badge badge-new">新制度</span>つみたて投資枠</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>年間投資枠</strong></td>
+                        <td class="old-system">40万円</td>
+                        <td class="new-system"><strong>120万円</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>非課税保有期間</strong></td>
+                        <td class="old-system">20年間</td>
+                        <td class="new-system"><strong>無期限</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>投資対象商品</strong></td>
+                        <td class="old-system">長期・積立・分散投資に適した一定の投資信託</td>
+                        <td class="new-system">長期・積立・分散投資に適した一定の投資信託</td>
+                    </tr>
+                    <tr>
+                        <td><strong>口座開設期間</strong></td>
+                        <td class="old-system">2023年まで</td>
+                        <td class="new-system"><strong>恒久化</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売却後の枠</strong></td>
+                        <td class="old-system">再利用不可</td>
+                        <td class="new-system"><strong>再利用可能</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>一般NISA・成長投資枠の比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th><span class="badge badge-old">旧制度</span>一般NISA</th>
+                        <th><span class="badge badge-new">新制度</span>成長投資枠</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>年間投資枠</strong></td>
+                        <td class="old-system">120万円</td>
+                        <td class="new-system"><strong>240万円</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>非課税保有期間</strong></td>
+                        <td class="old-system">5年間</td>
+                        <td class="new-system"><strong>無期限</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>投資対象商品</strong></td>
+                        <td class="old-system">上場株式・投資信託等</td>
+                        <td class="new-system">上場株式・投資信託等<br>（整理・監理銘柄、信託期間20年未満等を除く）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>口座開設期間</strong></td>
+                        <td class="old-system">2023年まで</td>
+                        <td class="new-system"><strong>恒久化</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>つみたてとの併用</strong></td>
+                        <td class="old-system">不可（選択制）</td>
+                        <td class="new-system"><strong>併用可能</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売却後の枠</strong></td>
+                        <td class="old-system">再利用不可</td>
+                        <td class="new-system"><strong>再利用可能</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="key-point">
+                💡 <strong>ポイント：</strong>新しいNISA制度では、つみたて投資枠と成長投資枠を同時に使うことができます。年間最大360万円の投資が可能になりました！
+            </div>
+        </section>
+
+        <!-- 免税額度説明 -->
+        <section class="section">
+            <h2>💰 非課税投資枠の詳細説明</h2>
+
+            <h3>年間投資枠</h3>
+            <div class="info-box">
+                <p><strong>つみたて投資枠：</strong>年間120万円まで</p>
+                <p><strong>成長投資枠：</strong>年間240万円まで</p>
+                <p><strong>合計：</strong>年間最大360万円の投資が可能</p>
+            </div>
+
+            <div class="amount-display">
+                年間最大 360万円
+            </div>
+
+            <h3>生涯非課税限度額</h3>
+            <p>新しいNISA制度では、生涯で投資できる非課税枠の上限が設定されています。</p>
+
+            <div class="highlight-box">
+                <strong>📌 生涯非課税限度額の内訳</strong>
+                <ul>
+                    <li><strong>全体の上限：1,800万円</strong></li>
+                    <li>そのうち成長投資枠は：<strong>1,200万円まで</strong></li>
+                    <li>つみたて投資枠のみの場合：<strong>1,800万円まで</strong>利用可能</li>
+                </ul>
+            </div>
+
+            <div class="amount-display">
+                生涯限度額 1,800万円
+            </div>
+
+            <h3>非課税保有限度額の管理方法</h3>
+            <p>新しいNISA制度では、「簿価残高方式」で非課税保有限度額を管理します。</p>
+
+            <ul>
+                <li><strong>簿価とは：</strong>購入時の金額（取得価額）のこと</li>
+                <li><strong>売却した場合：</strong>売却した分の簿価が非課税保有限度額から減少し、翌年以降に再利用可能</li>
+                <li><strong>運用益は含まない：</strong>株価が上がって評価額が増えても、非課税保有限度額の計算には影響しません</li>
+            </ul>
+
+            <div class="key-point">
+                📊 <strong>具体例：</strong>100万円で購入した株式が150万円に値上がりしても、非課税保有限度額の計算では100万円としてカウントされます。その後売却すると、100万円分の枠が翌年に復活します。
+            </div>
+
+            <h3>課税口座との比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>課税口座（特定口座・一般口座）</th>
+                        <th>NISA口座</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>譲渡益課税</strong></td>
+                        <td class="old-system">20.315%</td>
+                        <td class="new-system"><strong>非課税（0%）</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>配当金課税</strong></td>
+                        <td class="old-system">20.315%</td>
+                        <td class="new-system"><strong>非課税（0%）</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>100万円の利益が出た場合</strong></td>
+                        <td class="old-system">約20万円の税金<br>手取り：約80万円</td>
+                        <td class="new-system"><strong>税金なし</strong><br>手取り：100万円</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="disclaimer">
+                <strong>⚠️ 注意事項</strong>
+                <p>NISA口座での損失は、他の口座の利益と損益通算できません。また、損失の繰越控除もできません。投資判断は慎重に行ってください。</p>
+            </div>
+        </section>
+
+        <!-- 利用方法 -->
+        <section class="section">
+            <h2>🚀 NISA制度の始め方</h2>
+
+            <h3>対象者</h3>
+            <ul>
+                <li>日本に住む18歳以上の方</li>
+                <li>1人1口座まで開設可能</li>
+                <li>金融機関は年単位で変更可能</li>
+            </ul>
+
+            <h3>口座開設の流れ</h3>
+            <ol style="margin-left: 20px;">
+                <li><strong>金融機関を選ぶ</strong><br>証券会社や銀行などから選択</li>
+                <li><strong>必要書類を準備</strong><br>マイナンバーカードまたは通知カード+本人確認書類</li>
+                <li><strong>口座開設を申し込む</strong><br>オンラインまたは郵送で申込</li>
+                <li><strong>税務署の審査</strong><br>通常1〜2週間程度</li>
+                <li><strong>口座開設完了・取引開始</strong></li>
+            </ol>
+
+            <div class="info-box">
+                <strong>💡 金融機関選びのポイント</strong>
+                <ul>
+                    <li>取扱商品の種類と数</li>
+                    <li>取引手数料やコスト</li>
+                    <li>使いやすさ（アプリ・ウェブサイト）</li>
+                    <li>サポート体制</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- よくある質問 -->
+        <section class="section">
+            <h2>❓ よくある質問</h2>
+
+            <h3>Q1: 旧NISA口座を持っている場合はどうなりますか？</h3>
+            <p>A: 2023年末までに旧NISA口座で購入した商品は、新しいNISA制度とは別枠で、それぞれの非課税期間が終了するまで非課税で保有できます。2024年からは自動的に新しいNISA口座が開設されます。</p>
+
+            <h3>Q2: 成長投資枠だけを使うことはできますか？</h3>
+            <p>A: はい、可能です。つみたて投資枠と成長投資枠のどちらか一方だけを使うこともできますし、両方を併用することもできます。</p>
+
+            <h3>Q3: 非課税期間が無期限とはどういう意味ですか？</h3>
+            <p>A: 購入した商品をいつまでも非課税で保有し続けることができます。旧制度のように「5年後」「20年後」といった期限がありません。</p>
+
+            <h3>Q4: 海外に転居する場合はどうなりますか？</h3>
+            <p>A: 出国時にNISA口座での新規購入はできなくなりますが、保有している商品は一定期間継続管理勘定で保有できます。帰国後に再開することも可能です。</p>
+
+            <h3>Q5: 未成年者は利用できますか？</h3>
+            <p>A: 18歳未満の方は通常のNISAは利用できませんが、「ジュニアNISA」制度があります（2023年末で新規投資は終了しましたが、18歳まで非課税で保有可能）。</p>
+        </section>
+
+        <!-- まとめ -->
+        <section class="section">
+            <h2>✨ まとめ</h2>
+
+            <div class="highlight-box">
+                <strong>新しいNISA制度の5つのメリット</strong>
+                <ol style="margin-left: 20px; margin-top: 15px;">
+                    <li><strong>非課税期間が無期限</strong> - 長期投資に最適</li>
+                    <li><strong>年間投資枠が拡大</strong> - 最大360万円まで投資可能</li>
+                    <li><strong>2つの枠を併用可能</strong> - 柔軟な投資戦略が可能</li>
+                    <li><strong>売却後の枠が再利用可能</strong> - より自由な運用が可能</li>
+                    <li><strong>制度が恒久化</strong> - いつでも始められる安心感</li>
+                </ol>
+            </div>
+
+            <p style="margin-top: 20px;">新しいNISA制度は、長期的な資産形成を支援するための非常に有利な制度です。投資初心者の方から経験者まで、幅広い方々にとって活用価値の高い制度となっています。</p>
+
+            <div class="key-point">
+                🎯 <strong>資産形成は早く始めるほど有利です。</strong>新しいNISA制度を活用して、将来のための資産づくりを今日から始めてみませんか？
+            </div>
+        </section>
+
+        <!-- 法律声明セクション -->
+        <section class="legal-section">
+            <h2>⚖️ 法律に基づく表示</h2>
+
+            <h3>特定商取引法に基づく表記</h3>
+            <p>当サイトは、特定商取引法に基づく表記が必要なサービスを提供していません。本サイトは情報提供のみを目的としており、金融商品の販売や勧誘を行うものではありません。</p>
+
+            <p style="margin-top: 15px;">特定商取引法について詳しくは、消費者庁のウェブサイトをご確認ください：<br>
+            <a href="https://www.no-trouble.caa.go.jp/" target="_blank" rel="noopener noreferrer">https://www.no-trouble.caa.go.jp/</a></p>
+
+            <h3 style="margin-top: 30px;">免責事項</h3>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 15px;">
+                <p><strong>当サイトに掲載されている情報について：</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>本サイトは、NISA制度に関する一般的な情報提供を目的としています</li>
+                    <li>掲載内容は正確性を期しておりますが、最新の制度変更等により情報が更新されている可能性があります</li>
+                    <li>投資判断は必ずご自身の責任で行ってください</li>
+                    <li>本サイトの情報利用により発生した損害について、当サイトは一切の責任を負いません</li>
+                    <li>具体的な投資相談は、金融商品取引業者または税理士等の専門家にご相談ください</li>
+                </ul>
+            </div>
+
+            <h3 style="margin-top: 30px;">金融商品取引法に基づく表示</h3>
+            <p>当サイトは金融商品の販売や勧誘を行うものではありません。NISA口座の開設や金融商品の購入を検討される場合は、金融商品取引業者（証券会社等）に直接お問い合わせください。</p>
+
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 15px;">
+                <p><strong>投資に関する一般的な注意事項：</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>投資信託や株式等の金融商品は、元本保証されていません</li>
+                    <li>運用成果によっては、投資元本を割り込む可能性があります</li>
+                    <li>過去の運用実績は、将来の運用成果を保証するものではありません</li>
+                    <li>各金融商品には、手数料等のコストがかかります</li>
+                    <li>投資判断の際は、目論見書等を必ずご確認ください</li>
+                </ul>
+            </div>
+
+            <h3 style="margin-top: 30px;">著作権について</h3>
+            <p>当サイトに掲載されているコンテンツ（文章、画像、デザイン等）の著作権は、当サイト運営者に帰属します。無断転載・複製を禁じます。</p>
+
+            <h3 style="margin-top: 30px;">個人情報の取り扱い</h3>
+            <p>当サイトでは、個人情報の収集は行っておりません。アクセス解析のため、匿名の統計情報を収集する場合があります。</p>
+
+            <h3 style="margin-top: 30px;">お問い合わせ</h3>
+            <p>本サイトに関するご質問は、各金融機関または金融庁、国税庁等の公式サイトをご参照ください。</p>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
+                <p><strong>参考リンク：</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><a href="https://www.fsa.go.jp/policy/nisa2/about/index.html" target="_blank" rel="noopener noreferrer">金融庁 - NISA特設ウェブサイト</a></li>
+                    <li><a href="https://www.nta.go.jp/" target="_blank" rel="noopener noreferrer">国税庁ホームページ</a></li>
+                    <li><a href="https://www.jsda.or.jp/" target="_blank" rel="noopener noreferrer">日本証券業協会</a></li>
+                    <li><a href="https://www.shiruporuto.jp/" target="_blank" rel="noopener noreferrer">金融広報中央委員会「知るぽると」</a></li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 0.9em;">
+                <p>最終更新日：2024年1月</p>
+                <p style="margin-top: 10px;">本サイトの情報は、2024年1月時点の制度内容に基づいています。</p>
+            </div>
+        </section>
     </div>
 
-    <!-- Main Container -->
-    <div class="scroll-container" id="scrollContainer">
-        <!-- Section 1: Hero -->
-        <section class="scroll-section" data-section="0">
-            <div class="glass-card rounded-3xl p-8 flex-1 flex flex-col justify-center">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="pulse-dot"></span>
-                    <span class="text-sm text-gray-600 font-medium">情報サービス</span>
-                </div>
-
-                <h1 class="text-4xl font-bold gradient-text mb-4">
-                    デジタルインサイト
-                </h1>
-
-                <p class="text-gray-600 mb-6 leading-relaxed">
-                    最新のビジネス情報とデジタルトレンドをお届けする、プロフェッショナル向け情報ポータルサイトです。
-                </p>
-
-                <div class="flex flex-wrap gap-2 mb-8">
-                    <span class="info-badge">📊 ビジネス分析</span>
-                    <span class="info-badge">💼 業界レポート</span>
-                    <span class="info-badge">📈 トレンド情報</span>
-                </div>
-
-                <div class="disclaimer-box">
-                    <div class="font-bold mb-2">⚠️ 重要なお知らせ</div>
-                    <ul class="text-sm space-y-1 list-disc list-inside">
-                        <li>本サービスは情報提供のみを目的としています</li>
-                        <li>投資判断は自己責任でお願いいたします</li>
-                        <li>過去の実績は将来を保証するものではありません</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: Features -->
-        <section class="scroll-section" data-section="1">
-            <div class="glass-card rounded-3xl p-6 flex-1">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">サービスの特徴</h2>
-
-                <div class="feature-item">
-                    <div class="icon-circle">📚</div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800 mb-1">豊富な情報源</h3>
-                        <p class="text-sm text-gray-600">公開されている市場データや業界レポートを収集し、わかりやすく整理してお届けします。</p>
-                    </div>
-                </div>
-
-                <div class="feature-item">
-                    <div class="icon-circle">🔒</div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800 mb-1">セキュアな環境</h3>
-                        <p class="text-sm text-gray-600">最新のセキュリティ技術により、お客様の情報を安全に保護しています。</p>
-                    </div>
-                </div>
-
-                <div class="feature-item">
-                    <div class="icon-circle">📱</div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800 mb-1">モバイル対応</h3>
-                        <p class="text-sm text-gray-600">スマートフォンやタブレットなど、あらゆるデバイスで快適にご利用いただけます。</p>
-                    </div>
-                </div>
-
-                <div class="feature-item">
-                    <div class="icon-circle">⚡</div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800 mb-1">リアルタイム更新</h3>
-                        <p class="text-sm text-gray-600">最新の業界動向を定期的に更新し、常に新鮮な情報をご提供します。</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: Information Sources -->
-        <section class="scroll-section" data-section="2">
-            <div class="glass-card rounded-3xl p-6 flex-1 overflow-y-auto">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">情報について</h2>
-
-                <div class="content-card">
-                    <div class="flex items-start gap-3">
-                        <span class="text-2xl">📊</span>
-                        <div>
-                            <h3 class="font-semibold text-gray-800 mb-2">公開データの活用</h3>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                当サービスでは、一般に公開されている市場データ、政府統計、企業の公式発表などの信頼性の高い情報源を活用しています。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="content-card">
-                    <div class="flex items-start gap-3">
-                        <span class="text-2xl">🔍</span>
-                        <div>
-                            <h3 class="font-semibold text-gray-800 mb-2">情報の透明性</h3>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                提供する情報の出典を明確にし、客観的で中立的な視点から情報を整理しています。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="content-card">
-                    <div class="flex items-start gap-3">
-                        <span class="text-2xl">🛡️</span>
-                        <div>
-                            <h3 class="font-semibold text-gray-800 mb-2">プライバシー保護</h3>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                お客様の個人情報は厳重に管理され、適用される法規制に従って保護されます。第三者への無断提供は一切行いません。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section-divider"></div>
-
-                <div class="space-y-2">
-                    <h3 class="font-semibold text-gray-800 text-sm mb-3">カテゴリー</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="tag-pill">📈 経済指標</span>
-                        <span class="tag-pill">💼 ビジネス</span>
-                        <span class="tag-pill">🌐 グローバル市場</span>
-                        <span class="tag-pill">🏢 企業分析</span>
-                        <span class="tag-pill">📱 テクノロジー</span>
-                        <span class="tag-pill">📊 統計データ</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: FAQ -->
-        <section class="scroll-section" data-section="3">
-            <div class="glass-card rounded-3xl p-6 flex-1 overflow-y-auto">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">よくある質問</h2>
-
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>このサービスは無料ですか？</span>
-                        <span>▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        基本的な情報閲覧は無料でご利用いただけます。より詳細な分析レポートをご希望の場合は、お問い合わせください。
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>どのような情報が得られますか？</span>
-                        <span>▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        経済指標、業界トレンド、企業動向、市場分析など、ビジネスに役立つ幅広い情報を提供しています。すべて公開情報をベースにしています。
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>情報の更新頻度は？</span>
-                        <span>▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        情報の種類により異なりますが、重要なニュースやデータは可能な限りリアルタイムで更新されます。
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>投資アドバイスは受けられますか？</span>
-                        <span>▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        当サービスは情報提供のみを目的としており、個別の投資助言は行っておりません。投資判断は必ずご自身の責任で行ってください。
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>個人情報の取り扱いは？</span>
-                        <span>▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        お客様の個人情報は、プライバシーポリシーに基づき厳重に管理されます。データ保護法規を遵守し、第三者への無断提供は一切行いません。
-                    </div>
-                </div>
-
-                <div class="disclaimer-box mt-6">
-                    <div class="font-bold mb-2 text-xs">免責事項</div>
-                    <p class="text-xs leading-relaxed">
-                        本サービスで提供される情報は、一般的な情報提供のみを目的としています。情報の正確性や完全性を保証するものではなく、投資や取引の推奨を行うものでもありません。
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: Contact CTA -->
-        <section class="scroll-section" data-section="4">
-            <div class="glass-card rounded-3xl p-8 flex-1 flex flex-col justify-center items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center text-4xl mb-6 shadow-lg">
-                    ✉️
-                </div>
-
-                <h2 class="text-3xl font-bold gradient-text mb-4">
-                    お問い合わせ
-                </h2>
-
-                <p class="text-gray-600 mb-8 max-w-md leading-relaxed">
-                    サービスに関するご質問や詳細情報のご希望がございましたら、お気軽にお問い合わせください。
-                </p>
-
-                <button class="cta-button" onclick="handleContact()">
-                    お問い合わせフォームへ
-                </button>
-
-                <div class="mt-8 text-center">
-                    <p class="text-xs text-gray-500 leading-relaxed">
-                        営業時間: 平日 9:00 - 18:00<br>
-                        ※土日祝日は休業
-                    </p>
-                </div>
-
-                <div class="section-divider"></div>
-
-                <div class="text-xs text-gray-400 text-center">
-                    <p class="mb-2">© 2024 デジタルインサイト</p>
-                    <p>プライバシーポリシー | 利用規約</p>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Cookie Consent -->
-    <div id="cookieConsent" class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-purple-500 p-4 shadow-2xl z-[2000] hidden">
-        <div class="max-w-md mx-auto">
-            <p class="text-sm text-gray-700 mb-3 leading-relaxed">
-                当サイトは、サービス向上のためにCookieを使用しています。ご利用を継続することで、Cookieの使用に同意したものとみなされます。
-            </p>
-            <div class="flex gap-2">
-                <button id="acceptCookie" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2.5 px-4 rounded-lg font-medium hover:shadow-lg transition">
-                    同意する
-                </button>
-                <button id="rejectCookie" class="flex-1 bg-gray-200 text-gray-700 py-2.5 px-4 rounded-lg font-medium hover:bg-gray-300 transition">
-                    拒否
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Smooth scroll and navigation
-        const scrollContainer = document.getElementById('scrollContainer');
-        const navDots = document.querySelectorAll('.nav-dot');
-        let currentSection = 0;
-
-        // Navigation dot click
-        navDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                const sections = document.querySelectorAll('.scroll-section');
-                sections[index].scrollIntoView({ behavior: 'smooth' });
-            });
-        });
-
-        // Update active dot on scroll
-        scrollContainer.addEventListener('scroll', () => {
-            const sections = document.querySelectorAll('.scroll-section');
-            let current = 0;
-
-            sections.forEach((section, index) => {
-                const rect = section.getBoundingClientRect();
-                if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
-                    current = index;
-                }
-            });
-
-            if (current !== currentSection) {
-                currentSection = current;
-                navDots.forEach((dot, index) => {
-                    dot.classList.toggle('active', index === current);
-                });
-            }
-        });
-
-        // Accordion toggle
-        function toggleAccordion(header) {
-            const content = header.nextElementSibling;
-            const arrow = header.querySelector('span:last-child');
-
-            // Close all other accordions
-            document.querySelectorAll('.accordion-content').forEach(item => {
-                if (item !== content) {
-                    item.classList.remove('active');
-                    item.previousElementSibling.querySelector('span:last-child').textContent = '▼';
-                }
-            });
-
-            // Toggle current accordion
-            content.classList.toggle('active');
-            arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
-        }
-
-        // Contact button handler
-        function handleContact() {
-            window.location.href = '/contact';
-        }
-
-        // Cookie consent
-        function initCookie() {
-            if (!localStorage.getItem('cookieConsent')) {
-                setTimeout(() => {
-                    document.getElementById('cookieConsent').classList.remove('hidden');
-                }, 1500);
-            }
-        }
-
-        document.getElementById('acceptCookie').addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'accepted');
-            document.getElementById('cookieConsent').classList.add('hidden');
-        });
-
-        document.getElementById('rejectCookie').addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'rejected');
-            document.getElementById('cookieConsent').classList.add('hidden');
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initCookie();
-        });
-    </script>
+    <footer>
+        <p>&copy; 2024 日本NISA 2025制度完全指南. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 0.85em;">本サイトは情報提供のみを目的としており、投資の勧誘を行うものではありません。</p>
+    </footer>
 </body>
 </html>
